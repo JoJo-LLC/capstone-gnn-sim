@@ -94,6 +94,22 @@ body {
   background-color: #3d566e;
 }
 
+/* Sidebar Back Button */
+.sidebar button {
+  margin-top: 20px;
+  width: 100%;
+  padding: 10px 16px;
+  background-color: #e74c3c;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.sidebar button:hover {
+  background-color: #c0392b;
+}
 /* Content Area */
 .content {
   flex-grow: 1;
@@ -151,4 +167,12 @@ button:hover {
 #frameControls input[type="range"] {
   width: 100%;
   margin-top: 10px;
+}
+/* Subpage Visibility */
+.subpage {
+  display: none;
+}
+
+.subpage.active {
+  display: block;
 }

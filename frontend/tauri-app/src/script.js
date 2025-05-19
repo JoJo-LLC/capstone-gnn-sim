@@ -72,3 +72,17 @@ function renderGif() {
 function downloadGif() {
   alert("Download started. This would download the rendered GIF.");
 }
+
+// Show or hide frame controls based on visualisation mode
+document.addEventListener("DOMContentLoaded", function () {
+  const comparisonMode = document.getElementById("comparisonMode");
+  const frameControls = document.getElementById("frameControls");
+
+  comparisonMode.addEventListener("change", function () {
+    if (comparisonMode.value === "Frame-by-Frame Viewer") {
+      frameControls.style.display = "block";
+    } else {
+      frameControls.style.display = "none";
+    }
+  });
+});
