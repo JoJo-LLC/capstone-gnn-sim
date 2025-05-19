@@ -1,0 +1,11 @@
+echo "node_modules/
+__pycache__/
+*.pyc
+*.log
+.env
+dist/
+build/
+*.sqlite3
+*.db
+src-tauri/target/
+" >> .gitignore

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Structural Response Simulation Viewer</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="navbar">
+    <div class="navbar-title">Structural Response Simulation Viewer</div>
+    <div class="navbar-subtitle">Compare GNN vs LS-DYNA Visual Outputs</div>
+  </div>
+
+  <div class="container">
+    <div class="sidebar">
+      <ul>
+        <li onclick="showPage('uploadPage')">Upload & Predict</li>
+        <li onclick="showPage('savedPage')">Saved Visualisations</li>
+        <li onclick="showPage('settingsPage')">Settings</li>
+        <li onclick="showPage('helpPage')">Help</li>
+      </ul>
+    </div>
+
+    <div class="content">
+      <!-- Upload & Predict Page -->
+      <div id="uploadPage" class="page active">
+        <div class="panel">
+          <h3>Step 1: Upload Input Files</h3>
+          <label for="fileInput">Upload raw simulation input (.npz):</label>
+          <input type="file" id="fileInput" accept=".npz" />
+
+          <label for="fileLS">Optional: Upload LS-DYNA output (.npz):</label>
+          <input type="file" id="fileLS" accept=".npz" />
+
+          <label for="hardwareSelector">Select Execution Mode:</label>
+          <select id="hardwareSelector">
+            <option value="cpu" selected>CPU</option>
+            <option value="gpu">GPU</option>
+          </select>
+
+          <button onclick="runPrediction()">Run Prediction</button>
+        </div>
+
+        <div class="panel">
+          <h3>Step 2: Select Visualisation Mode</h3>
+          <select id="comparisonMode">
+            <option selected>Side-by-Side Comparison</option>
+            <option>Single Frame Mode</option>
+            <option>Frame-by-Frame Viewer</option>
+          </select>
+        </div>
+
+        <div class="panel">
+          <h3>Step 3: Visual Output</h3>
+          <div class="gif-preview" id="gifPreview">Your output will appear here...</div>
+          <button onclick="renderGif()">Render Comparison GIF</button>
+          <button onclick="downloadGif()">Download GIF</button>
+        </div>
+
+        <div class="panel" id="frameControls" style="display:none;">
+          <h3>Frame-by-Frame Controls</h3>
+          <label for="frameSlider">Select Frame:</label>
+          <input type="range" id="frameSlider" min="0" max="100" value="0" oninput="updateFrameLabel(this.value)" />
+          <p>Current Frame: <span id="currentFrame">0</span></p>
+        </div>
+      </div>
+
+      <!-- Saved Visualisations Page -->
+      <div id="savedPage" class="page">
+        <div class="panel">
+          <h3>Saved Visualisations</h3>
+          <ul>
+            <li>simulation_01.gif — <button>View</button> <button>Download</button> <button>Delete</button></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Settings Page -->
+      <div id="settingsPage" class="page">
+        <div class="panel">
+          <h3>Settings</h3>
+          <label>Default Output Format:</label>
+          <select>
+            <option selected>GIF</option>
+            <option>MP4</option>
+          </select>
+          <label>Frame Rate:</label>
+          <input type="number" placeholder="e.g. 24" />
+        </div>
+      </div>
+
+      <!-- Help Page -->
+      <div id="helpPage" class="page">
+        <div class="panel">
+          <h3>Help</h3>
+          <ul>
+            <li>Upload a raw `.npz` simulation input file</li>
+            <li>Optionally upload LS-DYNA output for comparison</li>
+            <li>Run GNN prediction inside the app</li>
+            <li>Render comparison as GIF or frame-by-frame</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
