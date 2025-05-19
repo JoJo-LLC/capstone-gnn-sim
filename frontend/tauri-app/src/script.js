@@ -1,48 +1,88 @@
-// Sidebar navigation
-function showPage(pageId) {
-  const pages = document.querySelectorAll(".page");
-  pages.forEach((page) => {
-    page.classList.remove("active");
-  });
+// Handle role selection
+function goToRole(role) {
+  hideAllPages();
 
-  const selectedPage = document.getElementById(pageId);
-  if (selectedPage) {
-    selectedPage.classList.add("active");
+  if (role === 'researcher') {
+    document.getElementById('researcherPage').classList.add('active');
+    showSubPage('uploadPage');
+  } else if (role === 'visitor') {
+    document.getElementById('visitorPage').classList.add('active');
+  } else if (role === 'admin') {
+    document.getElementById('adminPage').classList.add('active');
   }
 }
 
-// Prediction placeholder
-function runPrediction() {
-  const fileInput = document.getElementById("fileInput");
-  const fileLS = document.getElementById("fileLS");
-  const hardwareMode = document.getElementById("hardwareSelector").value;
+// Go back to landing page
+function backToLanding() {
+  hideAllPages();
+  document.getElementById('landingPage').classList.add('active');
+}
 
-  if (!fileInput.files.length) {
-    alert("Please upload a raw simulation input (.npz) file.");
+// Hide all main role pages
+function hideAllPages() {
+  const allPages = document.querySelectorAll('.page');
+  allPages.forEach(page => page.classList.remove('active'));
+}
+
+// Switch subpages within researcher dashboard
+function showPage(pageId) {
+  const allSubpages = document.querySelectorAll('.subpage');
+  allSubpages.forEach(page => page.classList.remove('active'));
+
+  const targetPage = document.getElementById(pageId);
+  if (targetPage) {
+    targetPage.classList.add('active');
+  }
+}
+
+// Frame slider logic
+function updateFrameLabel(value) {
+  document.getElementById('currentFrame').textContent = value;
+  // Optional: update preview image to match frame
+}
+
+// Placeholder for prediction function
+function runPrediction() {
+  const rawInput = document.getElementById('fileInput').files[0];
+  const lsOutput = document.getElementById('fileLS').files[0];
+  const hardware = document.getElementById('hardwareSelector').value;
+
+  if (!rawInput) {
+    alert("Please upload a .npz file to run prediction.");
     return;
   }
 
-  alert(`Running prediction on ${fileInput.files[0].name} using ${hardwareMode.toUpperCase()}...`);
+  // You would send rawInput and hardware to your backend API here.
+  alert("Prediction started with: " + rawInput.name + "\nMode: " + hardware);
+
+  // Placeholder: Show a fake GIF preview after "render"
+  setTimeout(() => {
+    document.getElementById('gifPreview').textContent = 'Rendered GIF preview shown here!';
+    document.getElementById('frameControls').style.display = 'block';
+  }, 1000);
 }
 
-// Render GIF placeholder
+// Placeholder for rendering GIF
 function renderGif() {
-  document.getElementById("gifPreview").innerHTML = "<p>[Rendered GIF Placeholder]</p>";
+  alert("Render GIF clicked. This would generate a comparison visual.");
+  // Logic to call API and update gifPreview
 }
 
-// Download GIF placeholder
+// Placeholder for downloading rendered GIF
 function downloadGif() {
-  alert("Downloading simulated GIF... (placeholder)");
+  alert("Download started. This would download the rendered GIF.");
 }
 
-// Comparison mode change
-function updateMode() {
-  const mode = document.getElementById("comparisonMode").value;
+// Show or hide frame controls based on visualisation mode
+document.addEventListener("DOMContentLoaded", function () {
+  const comparisonMode = document.getElementById("comparisonMode");
   const frameControls = document.getElementById("frameControls");
-  frameControls.style.display = (mode === "Frame-by-Frame Viewer") ? "block" : "none";
-}
 
-// Update frame slider
-function updateFrameLabel(value) {
-  document.getElementById("currentFrame").innerText = value;
-}
+  comparisonMode.addEventListener("change", function () {
+    if (comparisonMode.value === "Frame-by-Frame Viewer") {
+      frameControls.style.display = "block";
+    } else {
+      frameControls.style.display = "none";
+    }
+  });
+});
