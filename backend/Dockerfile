@@ -1,46 +1,42 @@
-# Use a base image with Python 3.7 and Conda
-FROM continuumio/miniconda3:4.9.2
+# backend/Dockerfile
+FROM python:3.11-slim
 
-# Install system dependencies
+WORKDIR /app
+
+# Install system dependencies for PyTorch and potential GPU support
 RUN apt-get update && apt-get install -y \
     git \
-    ffmpeg \
-    gfortran \
+    wget \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Create separate directories
-RUN mkdir /gns-fragment /app
-
-# Clone the repository (shallow clone to save space)
-WORKDIR /gns-fragment
-RUN git clone --depth 1 https://github.com/qilinli/gns-fragment.git .
-
-# Create Conda environment from repository's YAML
-RUN conda env create -f environment.yml
-
-# Make download scripts executable
-RUN chmod +x download_model.sh download_data.sh
-
-# Set environment PATH to include Conda environment
-ENV PATH /opt/conda/envs/gns/bin:$PATH
-
-# Set up the FastAPI app
-WORKDIR /app
-COPY . .
-
-# Install backend dependencies
+# Copy requirements first (for Docker layer caching)
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Entrypoint script to handle model/data downloads
-RUN echo "#!/bin/bash" > /entrypoint.sh && \
-    echo "set -e" >> /entrypoint.sh && \
-    echo "cd /gns-fragment" >> /entrypoint.sh && \
-    echo "if [ ! -d \"model\" ]; then ./download_model.sh; fi" >> /entrypoint.sh && \
-    echo "if [ ! -d \"data\" ]; then ./download_data.sh; fi" >> /entrypoint.sh && \
-    echo "cd /app" >> /entrypoint.sh && \
-    echo "exec \"$@\"" >> /entrypoint.sh && \
-    chmod +x /entrypoint.sh
+# Clone the GNS fragment repository
+RUN git clone https://github.com/qilinli/gns-fragment.git /app/gns-fragment
 
-ENTRYPOINT ["/entrypoint.sh"]
+# Install PyTorch (CPU version for compatibility, change to GPU if needed)
+RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+
+# Install PyTorch Geometric
+RUN pip install torch-geometric
+
+# Install GNS fragment dependencies
+RUN cd /app/gns-fragment && pip install -r requirements.txt
+
+# Copy all application code into container
+COPY . .
+
+# Create data directory for GNS fragment processing
+RUN mkdir -p /app/data
+
+# Expose port for FastAPI/Uvicorn server
+EXPOSE 8000
+
+# Set environment variables
+ENV PYTHONPATH="/app:/app/gns-fragment:${PYTHONPATH}"
+
+# Start FastAPI server with hot reload
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
