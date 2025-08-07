@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import shutil
 import os
+import psutil
 app = FastAPI()
 
 
@@ -51,3 +52,14 @@ async def export_file(filename: str):
     if not os.path.exists(file_location):
         raise HTTPException(status_code=404, detail="File not found")
     return {"filename": filename, "location": file_location}
+
+@app.get("/system/resource_usage")
+async def get_resource_usage():
+    cpu_usage = psutil.cpu_percent(interval=1)
+    memory_info = psutil.virtual_memory()
+    return {
+        "cpu_usage": cpu_usage,
+        "memory_total": memory_info.total,
+        "memory_used": memory_info.used,
+        "memory_free": memory_info.free
+    }
