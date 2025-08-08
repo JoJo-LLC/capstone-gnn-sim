@@ -7,6 +7,8 @@ services:
       - "8000:8000"
     volumes:
       - ./backend:/app
+    environment:
+      - PYTHONPATH=/app:/app/gns-fragment
     depends_on:
       - mongodb
 
@@ -25,5 +27,3 @@ services:
 volumes:
   mongodb_data:    
 
-    environment:
-      - PYTHONPATH=/app:/app/gns-fragment
