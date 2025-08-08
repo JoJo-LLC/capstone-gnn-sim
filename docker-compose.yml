@@ -1,5 +1,4 @@
 version: "3.9"
-
 services:
   backend:
     build: ./backend
@@ -25,3 +24,6 @@ services:
 
 volumes:
   mongodb_data:    
+
+    environment:
+      - PYTHONPATH=/app:/app/gns-fragment
