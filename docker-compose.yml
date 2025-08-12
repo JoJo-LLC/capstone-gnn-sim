@@ -6,9 +6,10 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./backend:/app
+      - ./backend:/app/src
     environment:
-      - PYTHONPATH=/app:/app/gns-fragment
+      - PYTHONPATH=/app:/app/gns-fragment:/app/src
+    working_dir: /app/src
     depends_on:
       - mongodb
 

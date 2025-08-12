@@ -47,3 +47,26 @@ def test_gns():
             "message": f"GNS integration failed: {str(e)}",
             "error_type": type(e).__name__
         }
+
+@app.get("/test-db")
+def test_database():
+    """Test endpoint to verify MongoDB connection"""
+    try:
+        # Import the database connection
+        from database_connection import DatabaseConnection
+        
+        # Test connection
+        db = DatabaseConnection()
+        connection_success = db.connection_test()
+        
+        return {
+            "status": "success" if connection_success else "error",
+            "message": "MongoDB connection working" if connection_success else "MongoDB connection failed",
+            "database_name": db.db.name if connection_success else None
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Database test failed: {str(e)}",
+            "error_type": type(e).__name__
+        }
