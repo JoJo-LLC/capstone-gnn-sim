@@ -1,16 +1,17 @@
-import React, { Fragment } from 'react'
+// FILE: src/views/home.js
+import React, { Fragment } from 'react';
+import { Helmet } from 'react-helmet';
 
-import { Helmet } from 'react-helmet'
+import Navbar8 from '../components/navbar8';
+import Hero17 from '../components/hero17';
+import Steps2 from '../components/steps2';
+import Features24 from '../components/features24';
+import Features25 from '../components/features25';
+import CTA26 from '../components/cta26';
+import Contact10 from '../components/contact10';
+import Footer4 from '../components/footer4';
 
-import Navbar8 from '../components/navbar8'
-import Hero17 from '../components/hero17'
-import Steps2 from '../components/steps2'
-import Features24 from '../components/features24'
-import Features25 from '../components/features25'
-import CTA26 from '../components/cta26'
-import Contact10 from '../components/contact10'
-import Footer4 from '../components/footer4'
-import './home.css'
+import './home.css';   // Page-specific styling
 
 const Home = () => {
   return (
@@ -18,204 +19,109 @@ const Home = () => {
       <Helmet>
         <title>Structural Response Simulation System — Capstone</title>
         <meta
-          property="og:title"
-          content="Structural Response Simulation System — Capstone"
+          name="description"
+          content="Run fast, accurate structural simulations powered by Graph Neural Networks. Explore example runs, upload .npz inputs, visualize in 3D, and export results — all from a local-first desktop app."
         />
       </Helmet>
 
-      <Navbar8
-        link1={<Fragment><span className="home-text10">Researcher</span></Fragment>}
-        link2={<Fragment><span className="home-text11">Visitor</span></Fragment>}
-        link3={<Fragment><span className="home-text12">Admin</span></Fragment>}
-        link4={<Fragment><span className="home-text13">About</span></Fragment>}
-        page1={<Fragment><span className="home-text14">Researcher Dashboard</span></Fragment>}
-        page2={<Fragment><span className="home-text15">Visitor Dashboard</span></Fragment>}
-        page3={<Fragment><span className="home-text16">Admin Dashboard</span></Fragment>}
-        page4={<Fragment><span className="home-text17">Project Overview</span></Fragment>}
-        page1Description={
-          <Fragment>
-            <span className="home-text18">
-              Upload .npz files, toggle CPU/GPU, choose visualization modes, and export results for analysis.
-            </span>
-          </Fragment>
-        }
-        page2Description={
-          <Fragment>
-            <span className="home-text19">
-              Browse preloaded example simulations in a gallery and preview frames interactively.
-            </span>
-          </Fragment>
-        }
-        page3Description={
-          <Fragment>
-            <span className="home-text20">
-              Manage roles, permissions, and stored simulation datasets.
-            </span>
-          </Fragment>
-        }
-        page4Description={
-          <Fragment>
-            <span className="home-text21">
-              Learn about the Capstone, tech stack, and documentation links.
-            </span>
-          </Fragment>
-        }
-        link1Url="/researcher-page"
-        link2Url="/visitor-page"
-        link3Url="/admin-page"
-      />
+      {/* NAVBAR */}
+      <section className="bg-brand--white fullwidth">
+        <Navbar8
+          link1="Researcher"
+          link2="Visitor"
+          link3="Admin"
+          link4="About"
+          link1Url="/researcher-page"
+          link2Url="/visitor-page"
+          link3Url="/admin-page"
+        />
+      </section>
 
-      <Hero17
-        action1={<Fragment><span className="home-text22">Explore as Researcher</span></Fragment>}
-        action2={<Fragment><span className="home-text23">Explore as Visitor</span></Fragment>}
-        content1={
-          <Fragment>
-            <span className="home-text24">
-              Run fast structural simulations powered by a Graph Neural Network. Choose your role to get started.
-            </span>
-          </Fragment>
-        }
-        heading1={
-          <Fragment>
-            <span className="home-text25">Structural Response Simulation System (Capstone)</span>
-          </Fragment>
-        }
-        image1Src="https://images.unsplash.com/photo-1675573206424-36f844f7627a?crop=entropy&amp;cs=tinysrgb&amp;fit=max&amp;fm=jpg&amp;ixid=M3w5MTMyMXwwfDF8cmFuZG9tfHx8fHx8fHx8MTc0Nzk0MTAxOHw&amp;ixlib=rb-4.1.0&amp;q=80&amp;w=1080"
-        rootClassName="hero17root-class-name"
-      />
+      {/* HERO */}
+      <section className="bg-brand--white fullwidth">
+        <Hero17
+          action1="Explore as Researcher"
+          action2="Explore as Visitor"
+          content1="Run fast structural simulations powered by a Graph Neural Network. Choose your role to get started."
+          heading1="Structural Response Simulation System (Capstone)"
+          image1Src="https://images.unsplash.com/photo-1675573206424-36f844f7627a"
+        />
+      </section>
 
-      <Steps2
-        step1Title={<Fragment><span className="home-text26">Choose Your Role</span></Fragment>}
-        step2Title={<Fragment><span className="home-text27">Upload Files</span></Fragment>}
-        step3Title={<Fragment><span className="home-text28">Customize Visualization</span></Fragment>}
-        step4Title={<Fragment><span className="home-text29">Export Results</span></Fragment>}
-        step1Description={
-          <Fragment>
-            <span className="home-text30">
-              Use Researcher, Visitor, or Admin to access the relevant dashboard and features.
-            </span>
-          </Fragment>
-        }
-        step2Description={
-          <Fragment>
-            <span className="home-text31">
-              Provide GNN inputs and (optionally) LS‑DYNA ground truth in .npz format.
-            </span>
-          </Fragment>
-        }
-        step3Description={
-          <Fragment>
-            <span className="home-text32">
-              Switch CPU/GPU, select single, frame‑by‑frame, or side‑by‑side modes, and scrub through frames.
-            </span>
-          </Fragment>
-        }
-        step4Description={
-          <Fragment>
-            <span className="home-text33">
-              Save outputs as GIF, MP4, or CSV for reporting and further analysis.
-            </span>
-          </Fragment>
-        }
-      />
+      {/* STEPS (Orange Background) */}
+      <section className="steps-section fullwidth">
+        <Steps2
+          step1Title="Choose Your Role"
+          step1Description="Select Researcher, Visitor, or Admin to access the relevant dashboard and features."
+          step2Title="Upload Files"
+          step2Description="Provide GNN inputs and LS-DYNA ground truth in .npz format."
+          step3Title="Customize Visualization"
+          step3Description="Switch between CPU/GPU, choose visualization mode, and scrub through frames interactively."
+          step4Title="Export Results"
+          step4Description="Save results as GIF, MP4, or CSV for reporting and further analysis."
+        />
+      </section>
 
-      <Features24
-        feature1Title={<Fragment><span className="home-text34">Upload .npz Inputs</span></Fragment>}
-        feature2Title={<Fragment><span className="home-text35">CPU/GPU Toggle</span></Fragment>}
-        feature3Title={<Fragment><span className="home-text36">Export Results</span></Fragment>}
-        feature1Description={
-          <Fragment>
-            <span className="home-text37">Load simulation inputs and optional LS‑DYNA reference data.</span>
-          </Fragment>
-        }
-        feature2Description={
-          <Fragment>
-            <span className="home-text38">Run locally on CPU or accelerate on GPU when available.</span>
-          </Fragment>
-        }
-        feature3Description={
-          <Fragment>
-            <span className="home-text39">Download results in CSV, with animation export to GIF/MP4.</span>
-          </Fragment>
-        }
-      />
+      {/* FEATURES 1 */}
+      <section className="bg-brand--white fullwidth">
+        <Features24
+          feature1Title="Upload .npz Inputs"
+          feature2Title="CPU/GPU Toggle"
+          feature3Title="Export Results"
+          feature1Description="Load simulation inputs and optional LS-DYNA reference data."
+          feature2Description="Run locally on CPU or accelerate on GPU when available."
+          feature3Description="Download results in CSV, with animation export to GIF/MP4."
+        />
+      </section>
 
-      <Features25
-        feature1Title={<Fragment><span className="home-text40">Rapid Iteration</span></Fragment>}
-        feature2Title={<Fragment><span className="home-text41">Local‑First Desktop App</span></Fragment>}
-        feature3Title={<Fragment><span className="home-text42">3D Visualization</span></Fragment>}
-        feature1Description={
-          <Fragment>
-            <span className="home-text43">
-              GNN‑based predictions return in minutes, enabling quick design cycles.
-            </span>
-          </Fragment>
-        }
-        feature2Description={
-          <Fragment>
-            <span className="home-text44">
-              Built with Tauri + React; works offline on standard hardware.
-            </span>
-          </Fragment>
-        }
-        feature3Description={
-          <Fragment>
-            <span className="home-text45">
-              Interactive viewing with single, frame‑by‑frame, and side‑by‑side modes.
-            </span>
-          </Fragment>
-        }
-      />
+      {/* FEATURES 2 */}
+      <section className="bg-brand--white fullwidth">
+        <Features25
+          feature1Title="Rapid Iteration"
+          feature2Title="Local-First Desktop App"
+          feature3Title="3D Visualization"
+          feature1Description="GNN-based predictions return in minutes, enabling quick design cycles."
+          feature2Description="Built with Tauri + React; works offline on standard hardware."
+          feature3Description="Interactive viewing with single, frame-by-frame, and side-by-side modes."
+        />
+      </section>
 
-      <CTA26
-        action1={<Fragment><span className="home-text46">Get Started</span></Fragment>}
-        content1={
-          <Fragment>
-            <span className="home-text47">
-              Choose your role to explore example simulations or run your own.
-            </span>
-          </Fragment>
-        }
-        heading1={<Fragment><span className="home-text48">Ready to run a simulation?</span></Fragment>}
-      />
+      {/* CTA */}
+      <section className="bg-brand--white fullwidth">
+        <CTA26
+          action1="Get Started"
+          content1="Choose your role to explore example simulations or run your own."
+          heading1="Ready to run a simulation?"
+        />
+      </section>
 
-      <Contact10
-        content1={
-          <Fragment>
-            <span className="home-text49">
-              Repositories and docs for the Capstone project are available to contributors.
-            </span>
-          </Fragment>
-        }
-        heading1={<Fragment><span className="home-text50">Project Repositories</span></Fragment>}
-        location1={<Fragment><span className="home-text51">GNN / Model Serving</span></Fragment>}
-        location2={<Fragment><span className="home-text52">Desktop App (Tauri + React)</span></Fragment>}
-        location1Description={
-          <Fragment>
-            <span className="home-text53">FastAPI + PyTorch backend, Dockerized environment, and dataset handling.</span>
-          </Fragment>
-        }
-        location2Description={
-          <Fragment>
-            <span className="home-text54">Local‑first UI with role‑based access and export utilities.</span>
-          </Fragment>
-        }
-        rootClassName="contact10root-class-name"
-      />
+      {/* CONTACT / REPOSITORIES */}
+      <section className="bg-brand--white fullwidth">
+        <Contact10
+          content1="Repositories and docs for the Capstone project are available to contributors."
+          heading1="Project Repositories"
+          location1="GNN / Model Serving"
+          location2="Desktop App (Tauri + React)"
+          location1Description="FastAPI + PyTorch backend, Dockerized environment, and dataset handling."
+          location2Description="Local-first UI with role-based access and export utilities."
+        />
+      </section>
 
-      <Footer4
-        link1={<Fragment><span className="home-text55">About</span></Fragment>}
-        link2={<Fragment><span className="home-text56">Contact</span></Fragment>}
-        link3={<Fragment><span className="home-text57">FAQs</span></Fragment>}
-        link4={<Fragment><span className="home-text58">Support</span></Fragment>}
-        link5={<Fragment><span className="home-text59">Blog</span></Fragment>}
-        termsLink={<Fragment><span className="home-text60">Terms of Service</span></Fragment>}
-        cookiesLink={<Fragment><span className="home-text61">Cookies Policy</span></Fragment>}
-        privacyLink={<Fragment><span className="home-text62">Privacy Policy</span></Fragment>}
-        logoSrc="https://images.unsplash.com/photo-1521058001910-55b77aba2203?crop=entropy&amp;cs=tinysrgb&amp;fit=max&amp;fm=jpg&amp;ixid=M3w5MTMyMXwwfDF8cmFuZG9tfHx8fHx8fHx8MTc0Nzk0MjcwN3w&amp;ixlib=rb-4.1.0&amp;q=80&amp;w=1080"
-      />
+      {/* FOOTER */}
+      <section className="bg-brand--white fullwidth">
+        <Footer4
+          link1="About"
+          link2="Contact"
+          link3="FAQs"
+          link4="Support"
+          link5="Blog"
+          termsLink="Terms of Service"
+          cookiesLink="Cookies Policy"
+          privacyLink="Privacy Policy"
+        />
+      </section>
     </div>
-  )
-}
+  );
+};
 
-export default Home
+export default Home;
