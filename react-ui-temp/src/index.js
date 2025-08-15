@@ -1,4 +1,3 @@
-import visitorPage from './views/visitor-page';
 import React from 'react'
 import ReactDOM from 'react-dom'
 import {
