@@ -18,6 +18,8 @@ function backToLanding() {
   document.getElementById('landingPage').classList.add('active');
 }
 
+
+
 // Hide all main role pages
 function hideAllPages() {
   const allPages = document.querySelectorAll('.page');
@@ -72,6 +74,19 @@ function renderGif() {
 function downloadGif() {
   alert("Download started. This would download the rendered GIF.");
 }
+// Test Reveal Hidden Visitor gif
+document.addEventListener("DOMContentLoaded", () => {
+  const viewBtn = document.getElementById("viewBtn");
+  const hiddenImage = document.getElementById("hiddenImage");
+
+  viewBtn.addEventListener("click", () => {
+    hiddenImage.style.display = "block";
+  });
+
+  hiddenImage.addEventListener("click", () => {
+    hiddenImage.style.display = "none";
+  });
+});
 
 // Show or hide frame controls based on visualisation mode
 document.addEventListener("DOMContentLoaded", function () {

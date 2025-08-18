@@ -5,8 +5,13 @@ import shutil
 import os
 import psutil
 import sys
-
+from fastapi.responses import FileResponse
 app = FastAPI()
+# Allow React to call the Api
+origins = [
+    "https://localhost:3000",
+    "https://localhost:5173",
+]
 
 # Enable CORS
 app.add_middleware(
@@ -42,6 +47,11 @@ async def upload_file(file: UploadFile = File(...)):
 async def run_simulation(body: BaseModel):
     # Implement your simulation logic here
     return {"message": "Simulation started", "data": body}
+# Mustefa's Visitor page gif passing test endpoint
+@app.get("/gif/{gif_name}")
+async def get_gif(gif_name: str):
+    return FileResponse(f"gifs/{gif_name}", media_type="image/gif")
+
 
 # Mustefa's status endpoint
 @app.get("/status/")

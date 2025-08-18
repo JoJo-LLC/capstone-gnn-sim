@@ -135,15 +135,23 @@
 
     <!-- Visitor Page -->
     <div id="visitorPage" class="page">
-      <div class="panel centered-container">
-        <h2>Visitor Gallery</h2>
-        <p>Browse public visualisations</p>
-        <ul>
-          <li>simulation_01.gif — <button>View</button></li>
-        </ul>
-        <button onclick="backToLanding()">Back</button>
-      </div>
-    </div>
+  <div class="panel centered-container">
+    <h2>Visitor Gallery</h2>
+    <p>Browse public visualisations</p>
+    <ul>
+      <li>
+        simulation_01.gif — 
+        <button id="viewBtn">View</button>
+      </li>
+    </ul>
+
+    <!-- Hidden image -->
+    <img id="hiddenImage" src="http://127.0.0.1:8000/gif/simulation_01.gif" alt="Simulation 01" style="display:none; max-width:100%; margin-top:10px;">
+
+
+    <button onclick="backToLanding()">Back</button>
+  </div>
+</div>
 
     <!-- Admin Page -->
     <div id="adminPage" class="page">
