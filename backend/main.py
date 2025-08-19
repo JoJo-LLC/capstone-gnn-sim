@@ -25,7 +25,18 @@ app.add_middleware(
 @app.get("/")
 def read_root():
     return {"message": "FastAPI backend is running"}
+@app.get("/predict")
+async def predict(
+    raw_input: UploadFile = File(...),
+    ls_output: UploadFile | None = File(None)
+    hardware_type: str = Form("cpu"),):
 
+    if not raw_input.filename.endswith('.npz'):
+        raise HTTPException(status_code=400, detail="Only .npz files are allowed for raw input")
+    if not ls_output and not ls_output.filename.endswith('.npz'):
+        raise HTTPException(status_code=400, detail="Only .npz files are allowed for LS output")
+    
+    raw
 # Mustefa's file upload endpoint
 @app.post("/uploadfile/")
 async def upload_file(file: UploadFile = File(...)):

@@ -44,7 +44,7 @@ function updateFrameLabel(value) {
 }
 
 // Placeholder for prediction function
-function runPrediction() {
+async function runPrediction() {
   const rawInput = document.getElementById('fileInput').files[0];
   const lsOutput = document.getElementById('fileLS').files[0];
   const hardware = document.getElementById('hardwareSelector').value;
@@ -53,7 +53,19 @@ function runPrediction() {
     alert("Please upload a .npz file to run prediction.");
     return;
   }
+  const form = new FormData();
+  form.append('raw_data', rawInput); 
+  if(lsOutput) form.append('ls_output', lsOutput);
+  form.append('hardware', hardware);
 
+  try {
+    const resp = await fetch('http://localhost:8000/predict', {
+      method: 'POST',
+      body: form
+    });
+  } catch (error) {
+    console.error("Error during prediction:", error);
+  }
   // You would send rawInput and hardware to your backend API here.
   alert("Prediction started with: " + rawInput.name + "\nMode: " + hardware);
 
