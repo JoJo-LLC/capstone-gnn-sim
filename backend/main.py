@@ -143,7 +143,7 @@ async def convert_d3plot_to_npz(d3plot_path: str = None):
         
         # Use provided path or default to example data
         if d3plot_path is None:
-            d3plot_path = "/app/src/lsdyna-output/d3plot"
+            d3plot_path = "/app/src/lsdyna-output2/d3plot"
         
         # Check if d3plot file exists
         if not os.path.exists(d3plot_path):
@@ -228,7 +228,7 @@ async def analyze_d3plot(d3plot_path: str = None):
     try:
         # Use provided path or default to example data
         if d3plot_path is None:
-            d3plot_path = "/app/src/lsdyna-output/d3plot"
+            d3plot_path = "/app/src/lsdyna-output2/d3plot"
         
         # Check if d3plot file exists
         if not os.path.exists(d3plot_path):
