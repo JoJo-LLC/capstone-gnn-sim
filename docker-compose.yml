@@ -1,5 +1,4 @@
 version: "3.9"
-
 services:
   backend:
     build: ./backend
@@ -7,4 +6,25 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./backend:/app
+      - ./backend:/app/src
+    environment:
+      - PYTHONPATH=/app:/app/gns-fragment:/app/src
+    working_dir: /app/src
+    depends_on:
+      - mongodb
+
+  mongodb:
+    image: mongo:7.0
+    container_name: structural_sim_mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+    restart: unless-stopped
+
+volumes:
+  mongodb_data:    
+
