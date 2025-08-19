@@ -10,4 +10,7 @@ build/
 src-tauri/target/
 backend/gns-fragment-reference/
 backend/lsdyna-output/
+backend/lsdyna-output2/
+LSDYNA_COMPATIBILITY_ISSUE_REPORT.md
 CLAUDE.md
+
