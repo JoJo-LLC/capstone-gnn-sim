@@ -1,7 +1,5 @@
 import React, { Fragment } from 'react'
-
 import PropTypes from 'prop-types'
-
 import './steps2.css'
 
 const Steps2 = (props) => {
@@ -9,22 +7,25 @@ const Steps2 = (props) => {
     <div className="steps2-container1 thq-section-padding">
       <div className="steps2-max-width thq-section-max-width">
         <div className="steps2-container2 thq-grid-2">
+          {/* Section Header */}
           <div className="steps2-section-header">
             <h2 className="thq-heading-2">
-              Discover the Power of Our Products
+              Discover the Power of Our Simulation Platform
             </h2>
             <p className="thq-body-large">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-              Suspendisse varius enim in eros elementum tristique. Duis cursus,
-              mi quis viverra ornare, eros dolor interdum nulla, ut commodo diam
-              libero vitae erat.
+              Our Structural Response Simulation System harnesses Graph Neural Network technology 
+              to deliver rapid, accurate predictions of structural behavior. Whether you’re a researcher, 
+              visitor, or admin, you can explore detailed 3D visualizations, compare results with LS-DYNA, 
+              and run simulations offline on standard hardware — all within minutes.
             </p>
             <div className="steps2-actions">
               <button className="thq-button-animated thq-button-filled steps2-button">
-                <span className="thq-body-small">Demo Video</span>
+                <span className="thq-body-small">Watch Demo Video</span>
               </button>
             </div>
           </div>
+
+          {/* Steps Cards */}
           <div className="steps2-container3">
             <div className="steps2-container4 thq-card">
               <h2 className="thq-heading-2">
@@ -38,14 +39,14 @@ const Steps2 = (props) => {
                 {props.step1Description ?? (
                   <Fragment>
                     <span className="steps2-text32">
-                      Select one of the following roles: Researcher, Visitor, or
-                      Admin to access the respective dashboard.
+                      Select Researcher, Visitor, or Admin to access the relevant dashboard and features.
                     </span>
                   </Fragment>
                 )}
               </span>
               <label className="steps2-text15 thq-heading-3">01</label>
             </div>
+
             <div className="steps2-container5 thq-card">
               <h2 className="thq-heading-2">
                 {props.step2Title ?? (
@@ -58,21 +59,19 @@ const Steps2 = (props) => {
                 {props.step2Description ?? (
                   <Fragment>
                     <span className="steps2-text29">
-                      Upload the necessary .npz files for GNN input and LS-DYNA
-                      ground truth data.
+                      Upload .npz GNN inputs and optional LS-DYNA reference data for comparison.
                     </span>
                   </Fragment>
                 )}
               </span>
               <label className="steps2-text18 thq-heading-3">02</label>
             </div>
+
             <div className="steps2-container6 thq-card">
               <h2 className="thq-heading-2">
                 {props.step3Title ?? (
                   <Fragment>
-                    <span className="steps2-text31">
-                      Customize Visualization
-                    </span>
+                    <span className="steps2-text31">Customize Visualization</span>
                   </Fragment>
                 )}
               </h2>
@@ -80,15 +79,15 @@ const Steps2 = (props) => {
                 {props.step3Description ?? (
                   <Fragment>
                     <span className="steps2-text27">
-                      Toggle between CPU and GPU processing, select
-                      visualization mode, adjust frame settings, and preview the
-                      simulation.
+                      Toggle CPU/GPU, switch between single, frame-by-frame, and side-by-side modes, 
+                      and scrub through simulation frames.
                     </span>
                   </Fragment>
                 )}
               </span>
               <label className="steps2-text21 thq-heading-3">03</label>
             </div>
+
             <div className="steps2-container7 thq-card">
               <h2 className="thq-heading-2">
                 {props.step4Title ?? (
@@ -101,8 +100,8 @@ const Steps2 = (props) => {
                 {props.step4Description ?? (
                   <Fragment>
                     <span className="steps2-text25">
-                      Export the simulation results in GIF, MP4, or CSV format
-                      for further analysis.
+                      Export your simulation results as GIF, MP4, or CSV for reports, 
+                      analysis, and sharing.
                     </span>
                   </Fragment>
                 )}

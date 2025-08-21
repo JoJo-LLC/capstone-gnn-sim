@@ -1,8 +1,6 @@
 import React, { Fragment } from 'react'
-
 import Script from 'dangerous-html/react'
 import PropTypes from 'prop-types'
-
 import './hero171.css'
 
 const Hero171 = (props) => {
@@ -14,7 +12,7 @@ const Hero171 = (props) => {
             {props.heading1 ?? (
               <Fragment>
                 <span className="hero171-text7">
-                  Welcome to Advanced Structural Simulations Platform
+                  Structural Response Simulation System
                 </span>
               </Fragment>
             )}
@@ -23,8 +21,10 @@ const Hero171 = (props) => {
             {props.content1 ?? (
               <Fragment>
                 <span className="hero171-text8">
-                  Empowering researchers with cutting-edge tools for structural
-                  simulations
+                  Run fast, accurate, and interactive structural simulations powered 
+                  by Graph Neural Networks — all from your desktop. Choose your role 
+                  to get started and explore advanced 3D visualizations, rapid iteration, 
+                  and offline capability.
                 </span>
               </Fragment>
             )}
@@ -35,7 +35,7 @@ const Hero171 = (props) => {
             <span className="thq-body-small">
               {props.action1 ?? (
                 <Fragment>
-                  <span className="hero171-text6">Get Started</span>
+                  <span className="hero171-text6">Explore as Researcher</span>
                 </Fragment>
               )}
             </span>
@@ -44,7 +44,7 @@ const Hero171 = (props) => {
             <span className="thq-body-small">
               {props.action2 ?? (
                 <Fragment>
-                  <span className="hero171-text5">Learn More</span>
+                  <span className="hero171-text5">Explore as Visitor</span>
                 </Fragment>
               )}
             </span>
@@ -73,8 +73,7 @@ const Hero171 = (props) => {
       transform: translateY(calc(-100% - 16px));
     }
   }
-</style>
-`}
+</style>`}
           ></Script>
         </div>
       </div>
