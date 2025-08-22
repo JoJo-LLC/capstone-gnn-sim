@@ -89,6 +89,21 @@ class SimulationSchemas:
             "stackTrace": None,  # For errors only
             "additionalData": {}  # Flexible field for more info
         }
+    
+    def gallery_schema(self):
+        return {
+            "_id": "",  # "demo-1", "demo-2", etc.
+            "title": "",  # "2D Copper Bar (sample)"
+            "description": "",  # "Frame-by-frame sample"
+            "preview_gif": "",  # "/static/samples/copper_demo.gif"
+            "preview_mp4": None,
+            "data_csv": None,
+            "tags": [],  # ["2D", "cpu"]
+            "frames": 0,  # 60
+            "created_at": datetime(),
+            "filePath" : ""
+
+        }
 
 class SimulationTypeDetector:
     """Detect simulation type from .npz file arrays"""
