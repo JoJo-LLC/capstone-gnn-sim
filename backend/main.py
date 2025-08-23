@@ -1,10 +1,13 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, Depends,Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from typing import AsyncGenerator,Optional,List, Any
+from database_connection import DatabaseConnection
 import shutil
 import os
 import psutil
 import sys
+
 from fastapi.responses import FileResponse
 app = FastAPI()
 # Allow React to call the Api
@@ -26,17 +29,45 @@ app.add_middleware(
 def read_root():
     return {"message": "FastAPI backend is running"}
 @app.get("/predict")
-async def predict(
-    raw_input: UploadFile = File(...),
-    ls_output: UploadFile | None = File(None)
-    hardware_type: str = Form("cpu"),):
+def predict():
+    return {"message": "Prediction endpoint"}
 
-    if not raw_input.filename.endswith('.npz'):
-        raise HTTPException(status_code=400, detail="Only .npz files are allowed for raw input")
-    if not ls_output and not ls_output.filename.endswith('.npz'):
-        raise HTTPException(status_code=400, detail="Only .npz files are allowed for LS output")
-    
-    raw
+
+
+async def get_db() -> AsyncGenerator[DatabaseConnection, None]:
+    db = DatabaseConnection()
+    try:
+        yield db
+    finally:
+        await db.close_connection()
+
+class GalleryItem(BaseModel):
+    id: str
+    title: str
+    description: Optional[str] = None
+    preview_gif: Optional[str] = None
+    preview_mp4: Optional[str] = None
+    data_csv: Optional[str] = None
+    tags: Optional[List[str]] = None
+    frames: Optional[Any] = None
+    created_at: Optional[str] = None
+   
+
+def _normalize_gallery_doc(doc: dict) -> GalleryItem:
+    return GalleryItem(
+        id=str(doc.get("_id", "")),
+        title=doc.get("title", ""),
+        description=doc.get("description"),
+        preview_gif=doc.get("preview_gif"),
+        preview_mp4=doc.get("preview_mp4"),
+        data_csv=doc.get("data_csv"),
+        tags=doc.get("tags"),
+        frames=doc.get("frames"),
+        created_at=doc.get("created_at"),
+    )
+
+
+
 # Mustefa's file upload endpoint
 @app.post("/uploadfile/")
 async def upload_file(file: UploadFile = File(...)):
@@ -62,7 +93,13 @@ async def run_simulation(body: BaseModel):
 @app.get("/gif/{gif_name}")
 async def get_gif(gif_name: str):
     return FileResponse(f"gifs/{gif_name}", media_type="image/gif")
-
+#Mustefa's visitor gif passing test endpoint
+@app.get("/gif/{gif_name}")
+async def get_gif(gif_name: str):
+    path = f"gifs/{gif_name}"
+    if not os.path.exists(path):
+        raise HTTPException(status_code=404, detail="GIF not found")
+    return FileResponse(path, media_type="image/gif")
 
 # Mustefa's status endpoint
 @app.get("/status/")
@@ -144,3 +181,19 @@ def test_database():
             "message": f"Database test failed: {str(e)}",
             "error_type": type(e).__name__
         }
+#testing db to be async
+
+    
+
+#App Gallery Endpoints
+@app.get("/gallery")
+async def list_gallery(db: DatabaseConnection = Depends(get_db)):
+    docs = await db.get_gallery_items()
+    return [_normalize_gallery_doc(d) for d in docs]
+
+@app.get("/gallery/{item_id}")
+async def get_gallery_item(item_id: str, db: DatabaseConnection = Depends(get_db)):
+    doc = await db.get_gallery_item(item_id)
+    if not doc:
+        raise HTTPException(status_code=404, detail="Item not found")
+    return _normalize_gallery_doc(doc)
