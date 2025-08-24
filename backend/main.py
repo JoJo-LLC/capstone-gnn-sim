@@ -7,6 +7,8 @@ import shutil
 import os
 import psutil
 import sys
+from pathlib import Path
+from starlette.staticfiles import StaticFiles
 
 from fastapi.responses import FileResponse
 app = FastAPI()
@@ -15,7 +17,11 @@ origins = [
     "https://localhost:3000",
     "https://localhost:5173",
 ]
+BASE_DIR = Path(__file__).resolve().parent  # .../backend
+ASSETS_DIR = BASE_DIR / "assets"            # .../backend/assets
 
+# Mount: /assets/* -> backend/assets/*
+app.mount("/assets", StaticFiles(directory=str(ASSETS_DIR)), name="assets")
 # Enable CORS
 app.add_middleware(
     CORSMiddleware,
@@ -197,3 +203,20 @@ async def get_gallery_item(item_id: str, db: DatabaseConnection = Depends(get_db
     if not doc:
         raise HTTPException(status_code=404, detail="Item not found")
     return _normalize_gallery_doc(doc)
+@app.get("/gallery/gifs")
+async def list_gallery_gifs(request: Request, db: DatabaseConnection = Depends(get_db)):
+    docs = await db.get_gallery_gifs()
+    base = str(request.base_url).rstrip("/")
+    items = []
+    for d in docs:
+        gif = d.get("preview_gif")
+        if not gif:
+            continue
+        if gif.startswith("http://") or gif.startswith("https://"):
+            gif_url = gif
+        elif gif.startswith("/"):
+            gif_url = f"{base}{gif}"
+        else:
+            gif_url = f"{base}/gifs/{gif}"
+        items.append({"id": str(d.get("_id", "")), "title": d.get("title", ""), "gif_url": gif_url})
+    return items
