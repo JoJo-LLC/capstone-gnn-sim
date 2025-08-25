@@ -1,17 +1,18 @@
 .visitor-page {
   min-height: 100vh;
-  /* Gradient background replacing the image */
   background: linear-gradient(135deg, #ff7e29, #ffffff, #2b6cb0);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  
+
   display: flex;
+  flex-direction: column; /* ✅ navbar on top, content below */
   align-items: center;
-  justify-content: center;
 }
 
+/* ✅ Overlay sits below navbar */
 .visitor-overlay {
+  margin-top: 100px;
   background-color: rgba(0, 0, 0, 0.65);
   padding: 50px 30px;
   border-radius: 15px;
@@ -57,6 +58,8 @@
 .visitor-preview-container {
   display: flex;
   justify-content: center;
+  margin-top: 20px;
+  width: 100%;
 }
 
 .preview-box {
@@ -67,4 +70,8 @@
   border-radius: 10px;
   width: 100%;
   max-width: 600px;
+  min-height: 120px;   /* ✅ ensures placeholder shows properly */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
