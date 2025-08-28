@@ -4,15 +4,18 @@
   "version": "0.1.0",
   "identifier": "com.capstone.structsim",
   "build": {
-    "frontendDist": "../src"
+    "beforeDevCommand": "npx cross-env BROWSER=none npm run start --prefix ../../react-ui-temp",
+    "beforeBuildCommand": "npm run build --prefix ../../react-ui-temp",
+    "devUrl": "http://localhost:3000",
+    "frontendDist": "../../react-ui-temp/build"
   },
   "app": {
     "withGlobalTauri": true,
     "windows": [
       {
         "title": "tauri-app",
-        "width": 800,
-        "height": 600
+        "fullscreen": true,
+        "resizable": true
       }
     ],
     "security": {
