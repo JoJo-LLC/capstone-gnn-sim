@@ -5,16 +5,39 @@ from database_connection import DatabaseConnection
 TEST_GALLERY_DATA = [
     {
         "_id": "demo-1",
-        "title": "Rollout Simulation Sample", 
+        "title": "a", 
         "description": "Real simulation rollout demonstration",
-        "preview_gif": "/static/samples/rollout_2.gif",
+        "preview_gif": "/backend/assets/gifs/rollout_2.gif",
         "preview_mp4": None,
         "data_csv": None,
         "tags": ["rollout", "demo", "real"],
         "frames": None,
         "created_at": "2025-08-19T10:00:00Z"
+    },
+    {
+        "_id": "demo-2",
+        "title": "b",
+        "description": "Shows the simulation frame by frame",
+        "preview_gif": "/backend/assets/gifs/GNN_1.gif",
+        "preview_mp4": None,
+        "data_csv": None,
+        "tags": ["slider", "demo"],
+        "frames": None,
+        "created_at": "2025-08-20T10:00:00Z"
+    },
+    {
+        "_id": "demo-3",
+        "title": "c",
+        "description": "Compares two runs side by side",
+        "preview_gif": "/backend/assets/gifs/hello.gif",
+        "preview_mp4": None,
+        "data_csv": None,
+        "tags": ["comparison", "demo"],
+        "frames": None,
+        "created_at": "2025-08-21T10:00:00Z"
     }
 ]
+
 
 
 async def retrieve_test_data():
