@@ -31,7 +31,9 @@ const AdminPage = () => {
         link2Url="/visitor-page"
         link3Url="/admin-page"
       />
-      <AdminDashboard />
+      <div className="admin-overlay">
+        <AdminDashboard />
+      </div>
       <Footer4
         link1="About Us"
         link2="Contact Us"

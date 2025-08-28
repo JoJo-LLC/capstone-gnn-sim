@@ -8,6 +8,7 @@
   display: flex;
   flex-direction: column; /* ✅ navbar on top, content below */
   align-items: center;
+  animation: fadeIn 0.8s ease-in-out;
 }
 
 /* ✅ Overlay sits below navbar */
@@ -74,4 +75,100 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.researcher-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #ff7e29, #ffffff, #2b6cb0);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.researcher-overlay {
+  margin-top: 100px;
+  background-color: rgba(0, 0, 0, 0.65);
+  padding: 50px 30px;
+  border-radius: 15px;
+  text-align: center;
+  width: 90%;
+  max-width: 700px;
+  color: #ffffff;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+}
+
+.researcher-page {
+  font-family: 'Inter', sans-serif;
+  animation: fadeIn 0.8s ease-in-out;
+}
+
+.researcher-title {
+  font-size: 2.8rem;
+  font-weight: 700;
+  background: linear-gradient(to right, #ffffff, #63b3ed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 15px;
+  animation: slideDown 0.6s ease forwards;
+}
+
+.researcher-subtitle {
+  font-size: 1.25rem;
+  font-weight: 300;
+  color: #cbd5e0;
+  margin-bottom: 30px;
+  animation: slideUp 0.6s ease forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&display=swap');
+
+
+/* --- Enhanced Researcher CPU/GPU Toggle Buttons --- */
+.researcher-toggle-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin: 20px 0;
+}
+
+.researcher-toggle-buttons button {
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #1e90ff, #2b6cb0);
+  color: white;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.3s ease;
+  box-shadow: 0 4px 15px rgba(30, 144, 255, 0.3);
+}
+
+.researcher-toggle-buttons button:hover {
+  transform: scale(1.05);
+  background: linear-gradient(90deg, #63b3ed, #3182ce);
+}
+
+.researcher-toggle-buttons button.active {
+  background: linear-gradient(90deg, #00bcd4, #2196f3);
+  box-shadow: 0 0 10px rgba(0, 188, 212, 0.6);
 }

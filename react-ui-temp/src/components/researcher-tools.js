@@ -7,12 +7,12 @@ import ExportButtons from './export-buttons'
 
 import './researcher-tools.css'
 
-const ResearcherTools = () => {
+const ResearcherTools = ({ mode, setMode }) => {
   return (
     <div className="researcher-tools-container thq-section-padding">
       <h2 className="thq-heading-2">Upload & Predict</h2>
       <UploadInputs />
-      <ExecutionToggle />
+      <ExecutionToggle mode={mode} setMode={setMode} />
       <ViewModeSelector />
       <PreviewOutput />
       <ExportButtons />
