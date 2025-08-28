@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import './visitor-page.css';
+import React, { useState } from "react";
+import Navbar8 from "../components/navbar8";   // ✅ navbar added
+import "./visitor-page.css";
 
 const VisitorPage = () => {
   const GIFS = [
@@ -12,6 +13,9 @@ const VisitorPage = () => {
 
   return (
     <div className="visitor-page">
+      {/* ✅ Navbar at the top */}
+      <Navbar8 />
+
       <div className="visitor-overlay">
         <h1 className="visitor-title">👋 Welcome, Visitor!</h1>
         <p className="visitor-subtitle">Explore our example simulations below</p>
