@@ -440,7 +440,7 @@ const Navbar8 = (props) => {
 }
 
 Navbar8.defaultProps = {
-  linkUrlPage2: 'https://www.teleporthq.io',
+  linkUrlPage2: undefined,
   page2ImageSrc:
     'https://images.unsplash.com/photo-1737703049274-0e661cb43bc9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MTMyMXwwfDF8cmFuZG9tfHx8fHx8fHx8MTc0Nzk0MDQ0M3w&ixlib=rb-4.1.0&q=80&w=1080',
   link2: undefined,
