@@ -137,7 +137,7 @@ def test_database():
 
 # Joe's Updated FGN inference endpoint for Docker gns-fragment with 0.4_6 workflow
 @app.post("/run-fgn-inference/")
-async def run_fgn_inference(nsteps: int = 20, data_path: str = "0.4_6", detonation_xy: str = "0,0", expanded_search: bool = False):
+async def run_fgn_inference(nsteps: int, data_path: str, detonation_xy: str = "0,0", expanded_search: bool = False):
     """Execute FGN inference using Docker gns-fragment with the proven 0.4_6 workflow"""
     try:
         import subprocess
@@ -304,4 +304,242 @@ async def run_fgn_inference(nsteps: int = 20, data_path: str = "0.4_6", detonati
                     "Check that data is mounted to /app/src"
                 ]
             }
+        }
+
+
+# Joe's Split endpoints for testing individual pipeline steps
+
+@app.post("/convert-d3plot-to-npz/")
+async def convert_d3plot_to_npz(data_path: str):
+    """Convert d3plot files to NPZ format using Docker gns-fragment"""
+    try:
+        import subprocess
+        import time
+        
+        # Docker container paths 
+        gns_path = "/app/gns-fragment"
+        data_source_path = f"/app/src/{data_path}"
+        
+        # Validate data path exists
+        if not os.path.exists(data_source_path):
+            raise HTTPException(status_code=404, detail=f"Data path not found: {data_source_path}")
+        
+        # Check for required d3plot files
+        d3plot_files = [f for f in os.listdir(data_source_path) if f.startswith('d3plot')]
+        if not d3plot_files:
+            raise HTTPException(status_code=400, detail=f"No d3plot files found in {data_source_path}")
+        
+        # Check if NPZ already exists
+        npz_file = f"{data_path}.npz"
+        npz_path = os.path.join(data_source_path, npz_file)
+        
+        conversion_start_time = time.time()
+        
+        if os.path.exists(npz_path):
+            return {
+                "status": "already_exists",
+                "message": f"NPZ file already exists: {npz_file}",
+                "data_path": data_path,
+                "npz_path": npz_path,
+                "d3plot_files": d3plot_files,
+                "timing": {"conversion_time_seconds": 0}
+            }
+        
+        print(f"Converting d3plot to NPZ for {data_path}...")
+        conversion_cmd = [
+            "python", f"{gns_path}/lsdyna/d3plot_to_npz.py", 
+            f"--data_path={data_source_path}"
+        ]
+        
+        try:
+            conversion_result = subprocess.run(
+                conversion_cmd, 
+                capture_output=True, 
+                text=True, 
+                cwd=gns_path,
+                timeout=300  # 5 minute timeout
+            )
+            
+            conversion_time = time.time() - conversion_start_time
+            
+            if conversion_result.returncode != 0:
+                return {
+                    "status": "error",
+                    "message": f"d3plot conversion failed",
+                    "error_details": conversion_result.stderr,
+                    "stdout": conversion_result.stdout,
+                    "data_path": data_path,
+                    "d3plot_files": d3plot_files,
+                    "timing": {"conversion_time_seconds": conversion_time}
+                }
+            
+            # Verify NPZ was created
+            npz_created = os.path.exists(npz_path)
+            npz_size = os.path.getsize(npz_path) if npz_created else 0
+            
+            return {
+                "status": "success",
+                "message": f"Successfully converted d3plot to NPZ",
+                "data_path": data_path,
+                "d3plot_files": d3plot_files,
+                "conversion": {
+                    "npz_file": npz_file,
+                    "npz_path": npz_path,
+                    "npz_created": npz_created,
+                    "npz_size_bytes": npz_size,
+                    "stdout": conversion_result.stdout
+                },
+                "timing": {"conversion_time_seconds": conversion_time}
+            }
+            
+        except subprocess.TimeoutExpired:
+            raise HTTPException(status_code=408, detail="d3plot conversion timed out (5 minutes)")
+        except Exception as e:
+            conversion_time = time.time() - conversion_start_time
+            return {
+                "status": "error",
+                "message": f"d3plot conversion exception: {str(e)}",
+                "error_type": type(e).__name__,
+                "data_path": data_path,
+                "d3plot_files": d3plot_files,
+                "timing": {"conversion_time_seconds": conversion_time}
+            }
+            
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"d3plot conversion setup failed: {str(e)}",
+            "error_type": type(e).__name__,
+            "data_path": data_path
+        }
+
+
+@app.post("/run-npz-inference/")
+async def run_npz_inference(data_path: str, nsteps: int, detonation_xy: str = "0,0", expanded_search: bool = False):
+    """Run FGN inference on existing NPZ file using Docker gns-fragment"""
+    try:
+        import subprocess
+        import time
+        
+        # Docker container paths
+        gns_path = "/app/gns-fragment"
+        data_source_path = f"/app/src/{data_path}"
+        
+        # Validate data path exists
+        if not os.path.exists(data_source_path):
+            raise HTTPException(status_code=404, detail=f"Data path not found: {data_source_path}")
+        
+        # Check for required NPZ file
+        npz_file = f"{data_path}.npz"
+        npz_path = os.path.join(data_source_path, npz_file)
+        
+        if not os.path.exists(npz_path):
+            raise HTTPException(status_code=400, detail=f"NPZ file not found: {npz_file}. Use /convert-d3plot-to-npz/ first.")
+        
+        npz_size = os.path.getsize(npz_path)
+        
+        print(f"Running FGN inference for {nsteps} steps on {npz_file}...")
+        inference_start_time = time.time()
+        
+        # Run FGN inference
+        inference_cmd = [
+            "python", "-m", "gns.inference",
+            f"--data_path={data_source_path}",
+            f"--nsteps={nsteps}",
+            f"--detonation_xy={detonation_xy}",
+            f"--expanded_search={str(expanded_search).lower()}"
+        ]
+        
+        try:
+            inference_result = subprocess.run(
+                inference_cmd,
+                capture_output=True,
+                text=True,
+                cwd=gns_path,
+                timeout=600  # 10 minute timeout for inference
+            )
+            
+            inference_time = time.time() - inference_start_time
+            
+            if inference_result.returncode != 0:
+                return {
+                    "status": "error",
+                    "message": f"FGN inference failed",
+                    "error_details": inference_result.stderr,
+                    "stdout": inference_result.stdout,
+                    "data_path": data_path,
+                    "npz_file": npz_file,
+                    "npz_size_bytes": npz_size,
+                    "parameters": {
+                        "nsteps": nsteps,
+                        "detonation_xy": detonation_xy,
+                        "expanded_search": expanded_search
+                    },
+                    "timing": {"inference_time_seconds": inference_time}
+                }
+            
+            # Check for generated outputs
+            output_base_dir = f"/app/src/output"
+            case_output_dir = os.path.join(output_base_dir, data_path)
+            output_exists = os.path.exists(case_output_dir)
+            
+            if output_exists:
+                # Count generated files
+                output_files = {}
+                for subdir in ['eps', 'fragment', 'mass', 'property']:
+                    subdir_path = os.path.join(case_output_dir, subdir)
+                    if os.path.exists(subdir_path):
+                        files = os.listdir(subdir_path)
+                        output_files[subdir] = len(files)
+                    else:
+                        output_files[subdir] = 0
+            else:
+                output_files = {"eps": 0, "fragment": 0, "mass": 0, "property": 0}
+            
+            return {
+                "status": "success",
+                "message": f"FGN inference completed successfully with {nsteps} steps",
+                "data_path": data_path,
+                "npz_file": npz_file,
+                "npz_size_bytes": npz_size,
+                "parameters": {
+                    "nsteps": nsteps,
+                    "detonation_xy": detonation_xy,
+                    "expanded_search": expanded_search
+                },
+                "inference": {
+                    "stdout": inference_result.stdout
+                },
+                "outputs": {
+                    "directory_exists": output_exists,
+                    "output_directory": case_output_dir,
+                    "generated_files": output_files
+                },
+                "timing": {"inference_time_seconds": inference_time}
+            }
+            
+        except subprocess.TimeoutExpired:
+            raise HTTPException(status_code=408, detail="FGN inference timed out (10 minutes)")
+        except Exception as e:
+            inference_time = time.time() - inference_start_time
+            return {
+                "status": "error",
+                "message": f"FGN inference exception: {str(e)}",
+                "error_type": type(e).__name__,
+                "data_path": data_path,
+                "npz_file": npz_file,
+                "parameters": {
+                    "nsteps": nsteps,
+                    "detonation_xy": detonation_xy,
+                    "expanded_search": expanded_search
+                },
+                "timing": {"inference_time_seconds": inference_time}
+            }
+            
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"NPZ inference setup failed: {str(e)}",
+            "error_type": type(e).__name__,
+            "data_path": data_path
         }
