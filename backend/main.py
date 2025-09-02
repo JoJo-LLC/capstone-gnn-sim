@@ -1,16 +1,30 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, Depends,Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from typing import AsyncGenerator,Optional,List, Any
+from database_connection import DatabaseConnection
 import shutil
 import os
 import psutil
 import sys
+from pathlib import Path
+from starlette.staticfiles import StaticFiles
 import json
 import numpy as np
 from pathlib import Path
 
+from fastapi.responses import FileResponse
 app = FastAPI()
+# Allow React to call the Api
+origins = [
+    "https://localhost:3000",
+    "https://localhost:5173",
+]
+BASE_DIR = Path(__file__).resolve().parent  # .../backend
+ASSETS_DIR = BASE_DIR / "assets"            # .../backend/assets
 
+# Mount: /assets/* -> backend/assets/*
+app.mount("/assets", StaticFiles(directory=str(ASSETS_DIR)), name="assets")
 # Enable CORS
 app.add_middleware(
     CORSMiddleware,
@@ -23,6 +37,45 @@ app.add_middleware(
 @app.get("/")
 def read_root():
     return {"message": "FastAPI backend is running"}
+@app.get("/predict")
+def predict():
+    return {"message": "Prediction endpoint"}
+
+
+
+async def get_db() -> AsyncGenerator[DatabaseConnection, None]:
+    db = DatabaseConnection()
+    try:
+        yield db
+    finally:
+        await db.close_connection()
+
+class GalleryItem(BaseModel):
+    id: str
+    title: str
+    description: Optional[str] = None
+    preview_gif: Optional[str] = None
+    preview_mp4: Optional[str] = None
+    data_csv: Optional[str] = None
+    tags: Optional[List[str]] = None
+    frames: Optional[Any] = None
+    created_at: Optional[str] = None
+   
+
+def _normalize_gallery_doc(doc: dict) -> GalleryItem:
+    return GalleryItem(
+        id=str(doc.get("_id", "")),
+        title=doc.get("title", ""),
+        description=doc.get("description"),
+        preview_gif=doc.get("preview_gif"),
+        preview_mp4=doc.get("preview_mp4"),
+        data_csv=doc.get("data_csv"),
+        tags=doc.get("tags"),
+        frames=doc.get("frames"),
+        created_at=doc.get("created_at"),
+    )
+
+
 
 # Mustefa's file upload endpoint
 @app.post("/uploadfile/")
@@ -45,6 +98,17 @@ async def upload_file(file: UploadFile = File(...)):
 async def run_simulation(body: BaseModel):
     # Implement your simulation logic here
     return {"message": "Simulation started", "data": body}
+# Mustefa's Visitor page gif passing test endpoint
+@app.get("/gif/{gif_name}")
+async def get_gif(gif_name: str):
+    return FileResponse(f"gifs/{gif_name}", media_type="image/gif")
+#Mustefa's visitor gif passing test endpoint
+@app.get("/gif/{gif_name}")
+async def get_gif(gif_name: str):
+    path = f"gifs/{gif_name}"
+    if not os.path.exists(path):
+        raise HTTPException(status_code=404, detail="GIF not found")
+    return FileResponse(path, media_type="image/gif")
 
 # Mustefa's status endpoint
 @app.get("/status/")
@@ -126,6 +190,39 @@ def test_database():
             "message": f"Database test failed: {str(e)}",
             "error_type": type(e).__name__
         }
+#testing db to be async
+
+    
+
+#App Gallery Endpoints
+@app.get("/gallery")
+async def list_gallery(db: DatabaseConnection = Depends(get_db)):
+    docs = await db.get_gallery_items()
+    return [_normalize_gallery_doc(d) for d in docs]
+
+@app.get("/gallery/{item_id}")
+async def get_gallery_item(item_id: str, db: DatabaseConnection = Depends(get_db)):
+    doc = await db.get_gallery_item(item_id)
+    if not doc:
+        raise HTTPException(status_code=404, detail="Item not found")
+    return _normalize_gallery_doc(doc)
+@app.get("/gallery/gifs")
+async def list_gallery_gifs(request: Request, db: DatabaseConnection = Depends(get_db)):
+    docs = await db.get_gallery_gifs()
+    base = str(request.base_url).rstrip("/")
+    items = []
+    for d in docs:
+        gif = d.get("preview_gif")
+        if not gif:
+            continue
+        if gif.startswith("http://") or gif.startswith("https://"):
+            gif_url = gif
+        elif gif.startswith("/"):
+            gif_url = f"{base}{gif}"
+        else:
+            gif_url = f"{base}/gifs/{gif}"
+        items.append({"id": str(d.get("_id", "")), "title": d.get("title", ""), "gif_url": gif_url})
+    return items
 
 
 
