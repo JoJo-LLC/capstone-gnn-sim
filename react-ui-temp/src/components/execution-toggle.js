@@ -11,25 +11,19 @@ const ExecutionToggle = () => {
   return (
     <div className="execution-toggle-container">
       <label className="thq-heading-3">Execution Mode</label>
-      <div className="execution-toggle-options">
-        <label className="thq-body-large">
-          <input
-            type="radio"
-            value="cpu"
-            checked={mode === 'cpu'}
-            onChange={handleChange}
-          />
+      <div className="researcher-toggle-buttons">
+        <button
+          className={mode === 'cpu' ? 'active' : ''}
+          onClick={() => setMode('cpu')}
+        >
           CPU
-        </label>
-        <label className="thq-body-large">
-          <input
-            type="radio"
-            value="gpu"
-            checked={mode === 'gpu'}
-            onChange={handleChange}
-          />
+        </button>
+        <button
+          className={mode === 'gpu' ? 'active' : ''}
+          onClick={() => setMode('gpu')}
+        >
           GPU
-        </label>
+        </button>
       </div>
     </div>
   )

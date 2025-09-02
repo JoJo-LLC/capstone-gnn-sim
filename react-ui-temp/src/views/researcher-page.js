@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react'
+import React, { Fragment, useState } from 'react'
 import { Helmet } from 'react-helmet'
 
 import Navbar8 from '../components/navbar8'
@@ -8,8 +8,9 @@ import ResearcherTools from '../components/researcher-tools'
 import './researcher-page.css'
 
 const ResearcherPage = (props) => {
+  const [mode, setMode] = useState('cpu');
   return (
-    <div className="researcher-page-container">
+    <div className="researcher-page">
       <Helmet>
         <title>Researcher Dashboard</title>
         <meta property="og:title" content="Researcher Dashboard" />
@@ -33,7 +34,9 @@ const ResearcherPage = (props) => {
         link3Url="/admin-page"
       />
 
-      <ResearcherTools />
+      <div className="researcher-overlay">
+        <ResearcherTools mode={mode} setMode={setMode} />
+      </div>
 
       <Footer4
         link1={<Fragment><span className="researcher-page-text26">About Us</span></Fragment>}

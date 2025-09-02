@@ -22,7 +22,9 @@ const UserTable = () => {
           <tr key={index}>
             <td>{u.name}</td>
             <td>{u.role}</td>
-            <td>{u.status}</td>
+            <td>
+              <span className={`status-badge ${u.status.toLowerCase()}`}>{u.status}</span>
+            </td>
           </tr>
         ))}
       </tbody>

@@ -2,6 +2,7 @@
 .home-container {
   background: linear-gradient(135deg, #ff7e29, #ffffff, #4da6ff);
   min-height: 100vh;
+  animation: fadeIn 0.8s ease-in-out;
 }
 
 /* Optional: Steps section transparent so gradient shows through */
