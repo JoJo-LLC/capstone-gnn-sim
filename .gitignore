@@ -1,4 +1,4 @@
-echo "node_modules/
+node_modules/
 __pycache__/
 *.pyc
 *.log
@@ -8,4 +8,9 @@ build/
 *.sqlite3
 *.db
 src-tauri/target/
-" >> .gitignore
+backend/gns-fragment-reference/
+backend/lsdyna-output/
+backend/lsdyna-output2/
+LSDYNA_COMPATIBILITY_ISSUE_REPORT.md
+CLAUDE.md
+
