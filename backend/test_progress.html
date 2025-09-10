@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FGN Inference Progress Test</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background-color: #1e1e1e;
+            color: #ffffff;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .progress-log {
+            background-color: #2d2d2d;
+            border: 1px solid #444;
+            padding: 15px;
+            margin: 20px 0;
+            min-height: 300px;
+            max-height: 500px;
+            overflow-y: auto;
+            border-radius: 5px;
+        }
+        .log-line {
+            margin: 5px 0;
+            word-wrap: break-word;
+        }
+        .progress { color: #4CAF50; }
+        .debug { color: #888; }
+        .case { color: #2196F3; }
+        .complete { color: #FF9800; font-weight: bold; }
+        .error { color: #F44336; }
+        
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #666;
+            cursor: not-allowed;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .status.running {
+            background-color: #2196F3;
+        }
+        .status.complete {
+            background-color: #4CAF50;
+        }
+        .status.error {
+            background-color: #F44336;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧠 FGN Inference Progress Tracker</h1>
+        
+        <div class="controls">
+            <label for="nsteps">Steps:</label>
+            <input type="number" id="nsteps" value="20" min="10" max="100">
+            
+            <label for="dataPath">Data Path:</label>
+            <input type="text" id="dataPath" value="0.4_6">
+            
+            <button id="startBtn" onclick="startInference()">🚀 Start Inference</button>
+            <button id="stopBtn" onclick="stopInference()" disabled>⏹️ Stop</button>
+        </div>
+
+        <div id="status" class="status" style="display: none;"></div>
+
+        <div class="progress-log" id="progressLog">
+            <div class="log-line">📋 Ready to start FGN inference...</div>
+            <div class="log-line debug">💡 Click "Start Inference" to begin real-time progress tracking</div>
+        </div>
+    </div>
+
+    <script>
+        let eventSource = null;
+        let startTime = null;
+
+        function addLogLine(message, type = '') {
+            const log = document.getElementById('progressLog');
+            const line = document.createElement('div');
+            line.className = `log-line ${type}`;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            line.innerHTML = `[${timestamp}] ${message}`;
+            
+            log.appendChild(line);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function updateStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+        }
+
+        function startInference() {
+            const nsteps = document.getElementById('nsteps').value;
+            const dataPath = document.getElementById('dataPath').value;
+            
+            if (!nsteps || !dataPath) {
+                alert('Please enter both steps and data path');
+                return;
+            }
+
+            // Reset UI
+            document.getElementById('progressLog').innerHTML = '';
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+            
+            startTime = Date.now();
+            updateStatus(`Starting FGN inference (${nsteps} steps)...`, 'running');
+            addLogLine(`🚀 Starting inference with ${nsteps} steps on ${dataPath}`, 'case');
+
+            // Create SSE connection using POST method
+            const url = `http://localhost:8000/run-npz-inference-progress/?data_path=${dataPath}&nsteps=${nsteps}&detonation_xy=0,0&expanded_search=false`;
+            
+            // EventSource only supports GET, so we need to use fetch for POST streaming
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'text/event-stream',
+                    'Cache-Control': 'no-cache'
+                }
+            }).then(response => {
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                
+                function processStream() {
+                    return reader.read().then(({ done, value }) => {
+                        if (done) {
+                            stopInference();
+                            return;
+                        }
+                        
+                        const text = decoder.decode(value);
+                        const lines = text.split('\n');
+                        
+                        for (let line of lines) {
+                            if (line.startsWith('data: ')) {
+                                const data = line.substring(6).trim();
+                                
+                                if (data === 'COMPLETE') {
+                                    const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+                                    updateStatus(`✅ Inference completed in ${elapsed}s`, 'complete');
+                                    addLogLine('🎉 Inference completed successfully!', 'complete');
+                                    stopInference();
+                                    return;
+                                } else if (data === 'ERROR') {
+                                    updateStatus('❌ Inference failed', 'error');
+                                    addLogLine('❌ Inference failed with errors', 'error');
+                                    stopInference();
+                                    return;
+                                } else if (data.includes('PROGRESS:')) {
+                                    addLogLine(data, 'progress');
+                                } else if (data.includes('CASE_') || data.includes('ROLLOUT_') || data.includes('POSTPROCESS_')) {
+                                    addLogLine(data, 'case');
+                                } else if (data.includes('[DEBUG]')) {
+                                    addLogLine(data, 'debug');
+                                } else if (data.includes('✓')) {
+                                    addLogLine(data, 'complete');
+                                } else if (data) {
+                                    addLogLine(data);
+                                }
+                            }
+                        }
+                        
+                        return processStream();
+                    });
+                }
+                
+                processStream();
+            }).catch(error => {
+                addLogLine('❌ Connection error: ' + error.message, 'error');
+                updateStatus('❌ Connection error', 'error');
+                stopInference();
+            });
+
+        }
+
+        function stopInference() {
+            if (eventSource) {
+                eventSource.close();
+                eventSource = null;
+            }
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = true;
+        }
+
+        // Auto-scroll to bottom when new content is added
+        const observer = new MutationObserver(() => {
+            const log = document.getElementById('progressLog');
+            log.scrollTop = log.scrollHeight;
+        });
+
+        observer.observe(document.getElementById('progressLog'), {
+            childList: true,
+            subtree: true
+        });
+    </script>
+</body>
+</html>
