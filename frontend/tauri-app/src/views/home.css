@@ -1,0 +1,25 @@
+/* Gradient background for the whole home page */
+.home-container {
+  background: linear-gradient(135deg, #ff7e29, #ffffff, #4da6ff);
+  min-height: 100vh;
+  animation: fadeIn 0.8s ease-in-out;
+}
+
+/* Optional: Steps section transparent so gradient shows through */
+.steps-section {
+  background: transparent;
+  padding: 50px 0;
+}
+
+/* Step cards styling */
+.steps2-step {
+  background-color: rgba(255, 204, 153, 0.9) !important;
+  color: black !important;
+  border-radius: 8px;
+  padding: 20px;
+}
+.steps2-step h3,
+.steps2-step p,
+.steps2-step span {
+  color: black !important;
+}

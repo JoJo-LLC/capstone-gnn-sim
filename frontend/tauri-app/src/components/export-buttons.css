@@ -1,0 +1,35 @@
+.export-buttons-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dl-layout-space-unit);
+  width: 100%;
+}
+
+.export-buttons-group {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--dl-layout-space-unit);
+  flex-wrap: wrap;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.export-button {
+  min-width: 120px;
+  padding: 12px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #805ad5, #6b46c1);
+  color: white;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.3s ease;
+  box-shadow: 0 4px 12px rgba(128, 90, 213, 0.3);
+}
+
+.export-button:hover {
+  transform: scale(1.05);
+  background: linear-gradient(90deg, #9f7aea, #805ad5);
+}
