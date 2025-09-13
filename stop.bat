@@ -1,7 +1,8 @@
 @echo off
 echo Stopping backend...
-cd /d C:\DontStarveTogether\work\2025-19-ai-powered-structural-response-simulator\backend
-docker compose down
+cd /d %~dp0backend
+set /p mode="Which mode did you launch (cpu/gpu)? "
+docker compose --profile %mode% down
 
 echo Killing frontend (cargo tauri dev)...
 taskkill /IM cargo.exe /F
