@@ -1,7 +1,6 @@
 import React, { Fragment } from 'react'
 import { Link } from 'react-router-dom'
 
-import Script from 'dangerous-html/react'
 import PropTypes from 'prop-types'
 
 import './hero17.css'
@@ -194,28 +193,27 @@ const Hero17 = (props) => {
       </div>
       <div>
         <div className="hero17-container2">
-          <Script
-            html={`<style>
-  @keyframes scroll-x {
-    from {
-      transform: translateX(0);
-    }
-    to {
-      transform: translateX(calc(-100% - 16px));
-    }
-  }
+          <style>
+            {`
+              @keyframes scroll-x {
+                from {
+                  transform: translateX(0);
+                }
+                to {
+                  transform: translateX(calc(-100% - 16px));
+                }
+              }
 
-  @keyframes scroll-y {
-    from {
-      transform: translateY(0);
-    }
-    to {
-      transform: translateY(calc(-100% - 16px));
-    }
-  }
-</style>
-`}
-          ></Script>
+              @keyframes scroll-y {
+                from {
+                  transform: translateY(0);
+                }
+                to {
+                  transform: translateY(calc(-100% - 16px));
+                }
+              }
+            `}
+          </style>
         </div>
       </div>
     </div>

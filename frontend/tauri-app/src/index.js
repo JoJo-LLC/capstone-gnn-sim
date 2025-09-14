@@ -1,10 +1,10 @@
 import React from 'react'
-import ReactDOM from 'react-dom'
+import ReactDOM from 'react-dom/client'
 import {
   BrowserRouter as Router,
+  Routes,
   Route,
-  Switch,
-  Redirect,
+  Navigate,
 } from 'react-router-dom'
 
 import './style.css'
@@ -17,16 +17,17 @@ import NotFound from './views/not-found'
 const App = () => {
   return (
     <Router>
-      <Switch>
-        <Route component={Home} exact path="/" />
-        <Route component={VisitorPage} exact path="/visitor-page" />
-        <Route component={AdminPage} exact path="/admin-page" />
-        <Route component={ResearcherPage} exact path="/researcher-page" />
-        <Route component={NotFound} path="**" />
-        <Redirect to="**" />
-      </Switch>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/visitor-page" element={<VisitorPage />} />
+        <Route path="/admin-page" element={<AdminPage />} />
+        <Route path="/researcher-page" element={<ResearcherPage />} />
+        <Route path="*" element={<NotFound />} />
+        <Route path="**" element={<Navigate to="*" />} />
+      </Routes>
     </Router>
   )
 }
 
-ReactDOM.render(<App />, document.getElementById('app'))
+const root = ReactDOM.createRoot(document.getElementById('app'))
+root.render(<App />)
