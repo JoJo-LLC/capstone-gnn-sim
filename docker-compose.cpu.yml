@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  gnn_cpu_backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.cpu
+    container_name: gnn_cpu_backend
+    ports:
+      - "8000:8000"
+    environment:
+      PYTHONPATH: /app:/app/gns-fragment:/app/src
+    volumes:
+      - ./backend:/app/src
+    working_dir: /app/src
+    depends_on:
+      mongodb:
+        condition: service_started
+        required: true
+    networks:
+      - sim_net
+
+  mongodb:
+    image: mongo:7.0
+    container_name: structural_sim_mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - sim_net
+
+volumes:
+  mongodb_data:
+
+networks:
+  sim_net:
+    name: sim_net

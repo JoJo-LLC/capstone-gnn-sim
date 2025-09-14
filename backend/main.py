@@ -1,4 +1,5 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException, Depends,Request
+from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, Request, Body
+import httpx
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import AsyncGenerator,Optional,List, Any
@@ -34,9 +35,53 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+# Inserted /infer endpoint before root GET
+@app.post("/infer")
+async def infer(data: dict = Body(...)):
+    print("[DEBUG] Received /infer data:", data)
+    return {
+        "message": "Simulation executed successfully",
+        "input": data
+    }
+
 @app.get("/")
 def read_root():
     return {"message": "FastAPI backend is running"}
+
+# New: ExecutionRequest model and /execute endpoint
+from pydantic import BaseModel
+
+class ExecutionRequest(BaseModel):
+    executionMode: str
+    inputData: dict
+
+@app.post("/execute")
+async def run_simulation_with_mode(request: ExecutionRequest = Body(...)):
+    mode = request.executionMode
+    data = request.inputData
+
+    if mode == "cpu":
+        backend_url = "http://gnn_cpu_backend:8000/infer"
+    elif mode == "gpu":
+        backend_url = "http://gnn_gpu_backend:8000/infer"
+    else:
+        raise HTTPException(status_code=400, detail="Invalid execution mode")
+
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(backend_url, json=data)
+            response.raise_for_status()
+        return response.json()
+    except httpx.RequestError as e:
+        raise HTTPException(status_code=502, detail=f"Failed to reach backend: {e}")
+    except httpx.HTTPStatusError as e:
+        return {
+            "status": "error",
+            "message": "Backend responded with error",
+            "status_code": e.response.status_code,
+            "backend_response": e.response.text
+        }
 @app.get("/predict")
 def predict():
     return {"message": "Prediction endpoint"}
