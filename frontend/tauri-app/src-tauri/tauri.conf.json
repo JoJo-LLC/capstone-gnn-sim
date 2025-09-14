@@ -1,21 +1,21 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "tauri-app",
+  "productName": "low-worthy-emu",
   "version": "0.1.0",
-  "identifier": "com.capstone.structsim",
+  "identifier": "com.tauri.dev",
   "build": {
-    "beforeDevCommand": "npx cross-env BROWSER=none npm run start --prefix ../../react-ui-temp",
-    "beforeBuildCommand": "npm run build --prefix ../../react-ui-temp",
+    "frontendDist": "../build",
     "devUrl": "http://localhost:3000",
-    "frontendDist": "../../react-ui-temp/build"
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build"
   },
   "app": {
-    "withGlobalTauri": true,
     "windows": [
       {
-        "title": "tauri-app",
-        "fullscreen": true,
-        "resizable": true
+        "title": "low-worthy-emu",
+        "resizable": true,
+        "fullscreen": false,
+        "maximized": true
       }
     ],
     "security": {

@@ -1,6 +1,5 @@
 import React, { Fragment } from 'react'
 
-import Script from 'dangerous-html/react'
 import PropTypes from 'prop-types'
 
 import './hero172.css'
@@ -189,28 +188,27 @@ const Hero172 = (props) => {
       </div>
       <div>
         <div className="hero172-container2">
-          <Script
-            html={`<style>
-  @keyframes scroll-x {
-    from {
-      transform: translateX(0);
-    }
-    to {
-      transform: translateX(calc(-100% - 16px));
-    }
-  }
+          <Fragment>
+            <style>
+              {`@keyframes scroll-x {
+                from {
+                  transform: translateX(0);
+                }
+                to {
+                  transform: translateX(calc(-100% - 16px));
+                }
+              }
 
-  @keyframes scroll-y {
-    from {
-      transform: translateY(0);
-    }
-    to {
-      transform: translateY(calc(-100% - 16px));
-    }
-  }
-</style>
-`}
-          ></Script>
+              @keyframes scroll-y {
+                from {
+                  transform: translateY(0);
+                }
+                to {
+                  transform: translateY(calc(-100% - 16px));
+                }
+              }`}
+            </style>
+          </Fragment>
         </div>
       </div>
     </div>
