@@ -186,7 +186,32 @@ def load_sample(sample_path, charge_weight, metadata, device):
     
     return sample_data
     
-def main(_):
+def run_inference_with_progress(data_path=None, model_path=None, model_file=None, nsteps=None, detonation_xy=None, expanded_search=None):
+    """
+    Run FGN inference with progress tracking and configurable parameters.
+    
+    Args:
+        data_path: Path to the dataset directory
+        model_path: Path to the model directory  
+        model_file: Model filename
+        nsteps: Number of rollout steps
+        detonation_xy: Detonation coordinates as list [x, y]
+        expanded_search: Whether to use expanded fragment search
+    """
+    # Use provided parameters or fall back to FLAGS
+    if data_path is not None:
+        FLAGS.data_path = data_path
+    if model_path is not None:
+        FLAGS.model_path = model_path
+    if model_file is not None:
+        FLAGS.model_file = model_file
+    if nsteps is not None:
+        FLAGS.nsteps = nsteps
+    if detonation_xy is not None:
+        FLAGS.detonation_xy = [str(x) for x in detonation_xy]
+    if expanded_search is not None:
+        FLAGS.expanded_search = expanded_search
+        
     # Initialisation
     device = 'cpu'
     metadata = reading_utils.read_metadata(FLAGS.data_path)
@@ -243,6 +268,10 @@ def main(_):
         print(f"POSTPROCESS_COMPLETE: Post-processing finished in {postprocessing_time:.0f}s", flush=True)
         print(f"CASE_COMPLETE: Total time {case_rollout_time:.0f}s "
               f"({case_rollout_time - postprocessing_time:.0f}s rollout + {postprocessing_time:.0f}s post-processing)", flush=True)
+
+def main(_):
+    """Main function for command-line usage."""
+    run_inference_with_progress()
         
 if __name__ == '__main__':
     app.run(main)

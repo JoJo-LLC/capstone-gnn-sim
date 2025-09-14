@@ -243,7 +243,7 @@ async def list_gallery_gifs(request: Request, db: DatabaseConnection = Depends(g
 
 # Joe's Updated FGN inference endpoint for Docker gns-fragment with 0.4_6 workflow
 @app.post("/run-fgn-inference/")
-async def run_fgn_inference(nsteps: int, data_path: str, detonation_xy: str = "0,0", expanded_search: bool = False):
+async def run_fgn_inference(nsteps: int, data_path: str, detonation_xy: str = "0,0", expanded_search: bool = False, model_path: str = "./model_4_inference/NS5e-4_1e-2_R14_L5N64_PosNsx10/", model_file: str = "model-066000.pt"):
     """Execute FGN inference using Docker gns-fragment with the proven 0.4_6 workflow"""
     try:
         import subprocess
@@ -305,6 +305,8 @@ async def run_fgn_inference(nsteps: int, data_path: str, detonation_xy: str = "0
         inference_cmd = [
             "python", "-m", "gns.inference",
             f"--data_path={data_source_path}",
+            f"--model_path={model_path}",
+            f"--model_file={model_file}",
             f"--nsteps={nsteps}",
             f"--detonation_xy={detonation_xy}",
             f"--expanded_search={str(expanded_search).lower()}"
@@ -521,7 +523,7 @@ async def convert_d3plot_to_npz(data_path: str):
 
 
 @app.post("/run-npz-inference/")
-async def run_npz_inference(data_path: str, nsteps: int, detonation_xy: str = "0,0", expanded_search: bool = False):
+async def run_npz_inference(data_path: str, nsteps: int, detonation_xy: str = "0,0", expanded_search: bool = False, model_path: str = "./model_4_inference/NS5e-4_1e-2_R14_L5N64_PosNsx10/", model_file: str = "model-066000.pt"):
     """Run FGN inference on existing NPZ file using Docker gns-fragment"""
     try:
         import subprocess
@@ -551,6 +553,8 @@ async def run_npz_inference(data_path: str, nsteps: int, detonation_xy: str = "0
         inference_cmd = [
             "python", "-m", "gns.inference",
             f"--data_path={data_source_path}",
+            f"--model_path={model_path}",
+            f"--model_file={model_file}",
             f"--nsteps={nsteps}",
             f"--detonation_xy={detonation_xy}",
             f"--expanded_search={str(expanded_search).lower()}"
@@ -682,7 +686,7 @@ def sanitize_output(line: str) -> str:
 
 # Joe's Progress-enabled FGN inference endpoint with real-time step tracking and security
 @app.post("/run-npz-inference-progress/")
-async def run_npz_inference_with_progress(data_path: str, nsteps: int, detonation_xy: str = "0,0", expanded_search: bool = False):
+async def run_npz_inference_with_progress(data_path: str, nsteps: int, detonation_xy: str = "0,0", expanded_search: bool = False, model_path: str = "./model_4_inference/NS5e-4_1e-2_R14_L5N64_PosNsx10/", model_file: str = "model-066000.pt"):
     """Run FGN inference on existing NPZ file with real-time progress streaming with security"""
     global current_inference_count
     
@@ -726,6 +730,8 @@ async def run_npz_inference_with_progress(data_path: str, nsteps: int, detonatio
                 inference_cmd = [
                     "python", "-u", "/app/src/gns_inference_with_progress.py",
                     f"--data_path={data_source_path}",
+                    f"--model_path={model_path}",
+                    f"--model_file={model_file}",
                     f"--nsteps={nsteps}",
                     f"--detonation_xy={detonation_xy}",
                     f"--expanded_search={str(expanded_search).lower()}"
