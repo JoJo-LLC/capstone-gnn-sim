@@ -37,3 +37,10 @@
   transform: scale(1.05);
   background: linear-gradient(90deg, #ffa04c, #ff7e29);
 }
+
+/* FGN Inference Section Styles */
+.fgn-inference-section {
+  margin-top: var(--dl-layout-space-twounits);
+  padding-top: var(--dl-layout-space-twounits);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
