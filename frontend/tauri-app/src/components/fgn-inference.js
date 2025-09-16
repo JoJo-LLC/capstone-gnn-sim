@@ -19,8 +19,36 @@ const FGNInference = () => {
     setLogs(prevLogs => [...prevLogs, { message, type, timestamp }])
   }
 
+  const selectFolder = () => {
+    // Trigger the hidden file input for folder selection
+    document.getElementById('folderSelector').click()
+  }
+
+  const handleFolderSelect = (event) => {
+    const files = event.target.files
+    if (files && files.length > 0) {
+      // Get the first file and extract folder name from webkitRelativePath
+      const filePath = files[0].webkitRelativePath
+      if (filePath) {
+        const folderName = filePath.split('/')[0]
+        setDataPath(folderName)
+        addLogLine(`📁 Selected folder: ${folderName}`, 'debug')
+      }
+      // Clear the input to prevent actual file upload
+      event.target.value = ''
+    }
+  }
+
   const updateStatus = (message, type) => {
     setStatus({ message, type })
+  }
+
+  const clearLog = () => {
+    setLogs([
+      { message: '📋 Ready to start FGN inference...', type: '', timestamp: new Date().toLocaleTimeString() },
+      { message: '💡 Click "Start Inference" to begin real-time progress tracking', type: 'debug', timestamp: new Date().toLocaleTimeString() }
+    ])
+    setStatus({ message: '', type: '' })
   }
 
   const startInference = async () => {
@@ -121,8 +149,8 @@ const FGNInference = () => {
       readerRef.current = null
     }
     setIsRunning(false)
-    updateStatus('⏹️ Inference stopped', 'stopped')
-    addLogLine('⏹️ Inference stopped by user', 'debug')
+    updateStatus('Inference stopped', 'stopped')
+    addLogLine('Inference stopped by user', 'debug')
   }
 
   // Auto-scroll to bottom when new logs are added
@@ -135,7 +163,7 @@ const FGNInference = () => {
 
   return (
     <div className="fgn-inference-container">
-      <h3 className="fgn-inference-title">🧠 FGN Inference Progress Tracker</h3>
+      <h3 className="fgn-inference-title"> FGN Inference</h3>
 
       <div className="fgn-inference-controls">
         <div className="fgn-control-group">
@@ -153,13 +181,38 @@ const FGNInference = () => {
 
         <div className="fgn-control-group">
           <label htmlFor="dataPath">Data Path:</label>
-          <input
-            type="text"
-            id="dataPath"
-            value={dataPath}
-            onChange={(e) => setDataPath(e.target.value)}
-            disabled={isRunning}
-          />
+          <div className="fgn-folder-selector">
+            <input
+              type="text"
+              id="dataPath"
+              value={dataPath}
+              onChange={(e) => setDataPath(e.target.value)}
+              disabled={isRunning}
+              placeholder="Enter folder name or use browse button"
+            />
+            <input
+              type="file"
+              id="folderSelector"
+              style={{ display: 'none' }}
+              webkitdirectory=""
+              directory=""
+              multiple
+              onChange={handleFolderSelect}
+              disabled={isRunning}
+            />
+            <button
+              type="button"
+              className="fgn-folder-btn"
+              onClick={selectFolder}
+              disabled={isRunning}
+              title="Browse for data folder"
+            >
+              📁 Browse
+            </button>
+          </div>
+          <div className="fgn-browse-note">
+            💡 Browse only selects folder path - no files are uploaded
+          </div>
         </div>
 
         <div className="fgn-control-buttons">
@@ -168,14 +221,22 @@ const FGNInference = () => {
             onClick={startInference}
             disabled={isRunning}
           >
-            🚀 Start Inference
+            Start Inference
           </button>
           <button
             className="fgn-stop-btn"
             onClick={stopInference}
             disabled={!isRunning}
           >
-            ⏹️ Stop
+            Stop
+          </button>
+          <button
+            className="fgn-clear-btn"
+            onClick={clearLog}
+            disabled={isRunning}
+            title="Clear log"
+          >
+            Clear Log
           </button>
         </div>
       </div>

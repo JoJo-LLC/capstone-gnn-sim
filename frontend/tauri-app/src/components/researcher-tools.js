@@ -1,6 +1,5 @@
 import React from 'react'
 import UploadInputs from './upload-inputs'
-import ExecutionToggle from './execution-toggle'
 import ViewModeSelector from './view-mode-selector'
 import PreviewOutput from './preview-output'
 import ExportButtons from './export-buttons'
@@ -13,15 +12,10 @@ const ResearcherTools = ({ mode, setMode }) => {
     <div className="researcher-tools-container thq-section-padding">
       <h2 className="thq-heading-2">Upload & Predict</h2>
       <UploadInputs />
-      <ExecutionToggle mode={mode} setMode={setMode} />
+      <FGNInference />
       <ViewModeSelector />
       <PreviewOutput />
       <ExportButtons />
-
-      {/* FGN Inference Section */}
-      <div className="fgn-inference-section">
-        <FGNInference />
-      </div>
     </div>
   )
 }

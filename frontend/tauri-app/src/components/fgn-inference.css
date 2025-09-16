@@ -1,11 +1,11 @@
 .fgn-inference-container {
   font-family: monospace;
-  background-color: #1e1e1e;
+  background-color: transparent !important;
   color: #ffffff;
   padding: 20px;
-  border-radius: 8px;
   margin: 20px 0;
   max-width: 100%;
+  border: none !important;
 }
 
 .fgn-inference-title {
@@ -13,6 +13,7 @@
   margin-bottom: 20px;
   font-size: 1.5rem;
   font-weight: bold;
+  text-align: center;
 }
 
 .fgn-inference-controls {
@@ -30,9 +31,10 @@
 }
 
 .fgn-control-group label {
-  color: #cccccc;
+  color: #ffffff;
   font-size: 14px;
   font-weight: bold;
+  text-align: left;
 }
 
 .fgn-control-group input {
@@ -42,6 +44,11 @@
   background-color: #2d2d2d;
   color: #ffffff;
   font-family: monospace;
+  min-width: 120px;
+}
+
+.fgn-control-group input[type="number"] {
+  width: 80px;
 }
 
 .fgn-control-group input:disabled {
@@ -49,12 +56,50 @@
   cursor: not-allowed;
 }
 
+.fgn-folder-selector {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.fgn-folder-selector input {
+  flex: 1;
+}
+
+.fgn-folder-btn {
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.fgn-folder-btn:hover:not(:disabled) {
+  background-color: #1976D2;
+}
+
+.fgn-folder-btn:disabled {
+  background-color: #444;
+  cursor: not-allowed;
+}
+
+.fgn-browse-note {
+  font-size: 12px;
+  color: #ffffff;
+  margin-top: 5px;
+  font-style: italic;
+  text-align: left;
+}
+
 .fgn-control-buttons {
   display: flex;
   gap: 10px;
 }
 
-.fgn-start-btn, .fgn-stop-btn {
+.fgn-start-btn, .fgn-stop-btn, .fgn-clear-btn {
   background-color: #4CAF50;
   color: white;
   border: none;
@@ -67,7 +112,11 @@
 }
 
 .fgn-stop-btn {
-  background-color: #f44336;
+  background-color: #E91E63;
+}
+
+.fgn-clear-btn {
+  background-color: #FF9800;
 }
 
 .fgn-start-btn:hover:not(:disabled) {
@@ -75,10 +124,14 @@
 }
 
 .fgn-stop-btn:hover:not(:disabled) {
-  background-color: #da190b;
+  background-color: #C2185B;
 }
 
-.fgn-start-btn:disabled, .fgn-stop-btn:disabled {
+.fgn-clear-btn:hover:not(:disabled) {
+  background-color: #f57c00;
+}
+
+.fgn-start-btn:disabled, .fgn-stop-btn:disabled, .fgn-clear-btn:disabled {
   background-color: #666;
   cursor: not-allowed;
 }
@@ -111,7 +164,7 @@
 }
 
 .fgn-progress-log {
-  background-color: #2d2d2d;
+  background-color: #0a0a0a;
   border: 1px solid #444;
   padding: 15px;
   min-height: 300px;
@@ -125,6 +178,7 @@
   margin: 5px 0;
   word-wrap: break-word;
   line-height: 1.4;
+  text-align: left;
 }
 
 .fgn-log-line.progress {
