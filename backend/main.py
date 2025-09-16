@@ -1,8 +1,11 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, Request, Body
 import httpx
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import AsyncGenerator,Optional,List, Any
+import asyncio
+import re
 from database_connection import DatabaseConnection
 import shutil
 import os
@@ -16,9 +19,15 @@ from pathlib import Path
 
 from fastapi.responses import FileResponse
 app = FastAPI()
+
+# Global inference tracking for rate limiting
+MAX_CONCURRENT_INFERENCE = 2
+current_inference_count = 0
+inference_lock = asyncio.Lock()
+
 # Allow React to call the Api
 origins = [
-    "https://localhost:3000",
+    "https://localhost:3000",  
     "https://localhost:5173",
 ]
 BASE_DIR = Path(__file__).resolve().parent  # .../backend
@@ -279,7 +288,7 @@ async def list_gallery_gifs(request: Request, db: DatabaseConnection = Depends(g
 
 # Joe's Updated FGN inference endpoint for Docker gns-fragment with 0.4_6 workflow
 @app.post("/run-fgn-inference/")
-async def run_fgn_inference(nsteps: int, data_path: str, detonation_xy: str = "0,0", expanded_search: bool = False):
+async def run_fgn_inference(nsteps: int, data_path: str, detonation_xy: str = "0,0", expanded_search: bool = False, model_path: str = "./model_4_inference/NS5e-4_1e-2_R14_L5N64_PosNsx10/", model_file: str = "model-066000.pt"):
     """Execute FGN inference using Docker gns-fragment with the proven 0.4_6 workflow"""
     try:
         import subprocess
@@ -341,6 +350,8 @@ async def run_fgn_inference(nsteps: int, data_path: str, detonation_xy: str = "0
         inference_cmd = [
             "python", "-m", "gns.inference",
             f"--data_path={data_source_path}",
+            f"--model_path={model_path}",
+            f"--model_file={model_file}",
             f"--nsteps={nsteps}",
             f"--detonation_xy={detonation_xy}",
             f"--expanded_search={str(expanded_search).lower()}"
@@ -557,7 +568,7 @@ async def convert_d3plot_to_npz(data_path: str):
 
 
 @app.post("/run-npz-inference/")
-async def run_npz_inference(data_path: str, nsteps: int, detonation_xy: str = "0,0", expanded_search: bool = False):
+async def run_npz_inference(data_path: str, nsteps: int, detonation_xy: str = "0,0", expanded_search: bool = False, model_path: str = "./model_4_inference/NS5e-4_1e-2_R14_L5N64_PosNsx10/", model_file: str = "model-066000.pt"):
     """Run FGN inference on existing NPZ file using Docker gns-fragment"""
     try:
         import subprocess
@@ -587,6 +598,8 @@ async def run_npz_inference(data_path: str, nsteps: int, detonation_xy: str = "0
         inference_cmd = [
             "python", "-m", "gns.inference",
             f"--data_path={data_source_path}",
+            f"--model_path={model_path}",
+            f"--model_file={model_file}",
             f"--nsteps={nsteps}",
             f"--detonation_xy={detonation_xy}",
             f"--expanded_search={str(expanded_search).lower()}"
@@ -685,3 +698,184 @@ async def run_npz_inference(data_path: str, nsteps: int, detonation_xy: str = "0
             "error_type": type(e).__name__,
             "data_path": data_path
         }
+
+
+# Security validation functions
+def validate_data_path(data_path: str) -> str:
+    """Validate and sanitize data_path parameter"""
+    # Allow only alphanumeric and specific characters (dots, underscores)
+    if not re.match(r'^[a-zA-Z0-9._-]+$', data_path) or len(data_path) > 50:
+        raise HTTPException(status_code=400, detail="Invalid data_path: must be alphanumeric with dots/underscores, max 50 chars")
+    return data_path
+
+def validate_nsteps(nsteps: int) -> int:
+    """Validate nsteps parameter"""
+    if not (10 <= nsteps <= 100):
+        raise HTTPException(status_code=400, detail="Invalid nsteps: must be between 10 and 100")
+    return nsteps
+
+def validate_detonation_xy(detonation_xy: str) -> str:
+    """Validate detonation_xy parameter"""
+    if not re.match(r'^-?\d+(\.\d+)?,-?\d+(\.\d+)?$', detonation_xy):
+        raise HTTPException(status_code=400, detail="Invalid detonation_xy: must be 'x,y' format with numbers")
+    return detonation_xy
+
+def sanitize_output(line: str) -> str:
+    """Sanitize output to prevent information disclosure"""
+    # Remove absolute paths and replace with relative references
+    line = re.sub(r'/app/src/', '', line)
+    line = re.sub(r'/app/gns-fragment/', '', line) 
+    # Remove any potential sensitive environment info
+    line = re.sub(r'PYTHONPATH=.*', '[PYTHONPATH_REMOVED]', line)
+    return line
+
+# Joe's Progress-enabled FGN inference endpoint with real-time step tracking and security
+@app.post("/run-npz-inference-progress/")
+async def run_npz_inference_with_progress(data_path: str, nsteps: int, detonation_xy: str = "0,0", expanded_search: bool = False, model_path: str = "./model_4_inference/NS5e-4_1e-2_R14_L5N64_PosNsx10/", model_file: str = "model-066000.pt"):
+    """Run FGN inference on existing NPZ file with real-time progress streaming with security"""
+    global current_inference_count
+    
+    # Validate all input parameters
+    data_path = validate_data_path(data_path)
+    nsteps = validate_nsteps(nsteps)
+    detonation_xy = validate_detonation_xy(detonation_xy)
+    
+    # Rate limiting check
+    async with inference_lock:
+        if current_inference_count >= MAX_CONCURRENT_INFERENCE:
+            raise HTTPException(
+                status_code=429, 
+                detail=f"Too many concurrent inference requests. Maximum: {MAX_CONCURRENT_INFERENCE}"
+            )
+        current_inference_count += 1
+    
+    try:
+        import subprocess
+        import time
+        
+        # Docker container paths
+        gns_path = "/app/gns-fragment"
+        data_source_path = f"/app/src/{data_path}"
+        
+        # Validate data path exists
+        if not os.path.exists(data_source_path):
+            raise HTTPException(status_code=404, detail=f"Data path not found")
+        
+        # Check for required NPZ file
+        npz_file = f"{data_path}.npz"
+        npz_path = os.path.join(data_source_path, npz_file)
+        
+        if not os.path.exists(npz_path):
+            raise HTTPException(status_code=400, detail=f"NPZ file not found. Use /convert-d3plot-to-npz/ first.")
+        
+        async def stream_inference():
+            """Generator that streams inference progress in real-time using asyncio"""
+            try:
+                # Start the inference process using our progress-enabled script  
+                inference_cmd = [
+                    "python", "-u", "/app/src/gns_inference_with_progress.py",
+                    f"--data_path={data_source_path}",
+                    f"--model_path={model_path}",
+                    f"--model_file={model_file}",
+                    f"--nsteps={nsteps}",
+                    f"--detonation_xy={detonation_xy}",
+                    f"--expanded_search={str(expanded_search).lower()}"
+                ]
+                
+                # Use asyncio subprocess for true non-blocking streaming
+                process = await asyncio.create_subprocess_exec(
+                    *inference_cmd,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.STDOUT,
+                    cwd="/app/gns-fragment",
+                    env={**os.environ, "PYTHONUNBUFFERED": "1"}
+                )
+                
+                start_time = time.time()
+                yield f"data: Starting FGN inference for {nsteps} steps...\n\n"
+                
+                # Stream output line by line in real-time
+                while True:
+                    line = await process.stdout.readline()
+                    if not line:
+                        break
+                        
+                    line = line.decode().strip()
+                    if line:
+                        # Sanitize output to prevent information disclosure
+                        line = sanitize_output(line)
+                        
+                        # Format progress lines for better readability
+                        if "PROGRESS:" in line:
+                            yield f"data: {line}\n\n"
+                        elif "CASE_START:" in line or "ROLLOUT_START:" in line or "ROLLOUT_COMPLETE:" in line:
+                            yield f"data: {line}\n\n"
+                        elif "POSTPROCESS_START:" in line or "POSTPROCESS_COMPLETE:" in line:
+                            yield f"data: {line}\n\n"
+                        elif "CASE_COMPLETE:" in line:
+                            yield f"data: {line}\n\n"
+                        elif "INITIALIZATION:" in line:
+                            yield f"data: {line}\n\n"
+                        else:
+                            # Send other output as debug info (limited)
+                            if len(line) < 200:  # Limit debug output length
+                                yield f"data: [DEBUG] {line}\n\n"
+                
+                # Wait for process to complete with timeout
+                try:
+                    return_code = await asyncio.wait_for(process.wait(), timeout=600)  # 10 min timeout
+                except asyncio.TimeoutError:
+                    process.terminate()
+                    await asyncio.sleep(1)
+                    if process.returncode is None:
+                        process.kill()
+                    yield f"data: ✗ Inference timed out after 10 minutes\n\n"
+                    yield f"data: ERROR\n\n"
+                    return
+                total_time = time.time() - start_time
+                
+                if return_code == 0:
+                    yield f"data: ✓ FGN inference completed successfully in {total_time:.1f}s\n\n"
+                    
+                    # Check output files
+                    output_base_dir = f"/app/src/output"
+                    case_output_dir = os.path.join(output_base_dir, data_path)
+                    if os.path.exists(case_output_dir):
+                        output_files = {}
+                        for subdir in ['eps', 'fragment', 'mass', 'property']:
+                            subdir_path = os.path.join(case_output_dir, subdir)
+                            if os.path.exists(subdir_path):
+                                files = os.listdir(subdir_path)
+                                output_files[subdir] = len(files)
+                            else:
+                                output_files[subdir] = 0
+                        yield f"data: Generated files: {output_files}\n\n"
+                    
+                    yield f"data: COMPLETE\n\n"
+                else:
+                    yield f"data: ✗ FGN inference failed with return code {return_code}\n\n"
+                    yield f"data: ERROR\n\n"
+                    
+            except Exception as e:
+                yield f"data: ✗ Exception during inference: {str(e)}\n\n"
+                yield f"data: ERROR\n\n"
+        
+        # Return Server-Sent Events stream
+        return StreamingResponse(
+            stream_inference(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers": "*",
+                "X-Accel-Buffering": "no"  # Disable nginx buffering
+            }
+        )
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to start inference: {str(e)}")
+    finally:
+        # Always decrement the counter when inference completes
+        async with inference_lock:
+            current_inference_count -= 1
