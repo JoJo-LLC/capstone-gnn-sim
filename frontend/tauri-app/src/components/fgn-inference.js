@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import './fgn-inference.css'
 
-const FGNInference = () => {
+const FGNInference = ({ onSimulationComplete }) => {
   const [nsteps, setNsteps] = useState(20)
   const [dataPath, setDataPath] = useState('0.4_6')
   const [isRunning, setIsRunning] = useState(false)
@@ -105,6 +105,12 @@ const FGNInference = () => {
                   updateStatus(`✅ Inference completed in ${elapsed}s`, 'complete')
                   addLogLine('🎉 Inference completed successfully!', 'complete')
                   setIsRunning(false)
+                   // build gif url and notify parent
+                   const gifUrl = `http://localhost:8000/gallery/${dataPath}/gif?cacheBust=${Date.now()}`
+                   if (onSimulationComplete) {
+                     onSimulationComplete(gifUrl)
+                   }
+
                   return
                 } else if (data === 'ERROR') {
                   updateStatus('❌ Inference failed', 'error')
