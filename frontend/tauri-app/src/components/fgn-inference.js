@@ -18,6 +18,7 @@ const FGNInference = ({ onSimulationComplete }) => {
     const timestamp = new Date().toLocaleTimeString()
     setLogs(prevLogs => [...prevLogs, { message, type, timestamp }])
   }
+  const [resourceUsage, setResourceUsage] = useState({ cpu_usage: 0, memory_total: 0, memory_used: 0, memory_free: 0, });
 
   const selectFolder = () => {
     // Trigger the hidden file input for folder selection
@@ -50,6 +51,23 @@ const FGNInference = ({ onSimulationComplete }) => {
     ])
     setStatus({ message: '', type: '' })
   }
+  useEffect(() => {
+    let interval
+    if (isRunning) {
+      interval = setInterval(async () => {
+        try {
+          const res = await fetch("http://localhost:8000/system/resource_usage")
+          if (res.ok) {
+            const data = await res.json()
+            setResourceUsage(data)
+          }
+        } catch (err) {
+          console.error("Error fetching resource usage", err)
+        }
+      }, 200)
+    }
+    return () => clearInterval(interval)
+  }, [isRunning])
 
   const startInference = async () => {
     if (!nsteps || !dataPath) {
@@ -105,7 +123,7 @@ const FGNInference = ({ onSimulationComplete }) => {
                   updateStatus(`✅ Inference completed in ${elapsed}s`, 'complete')
                   addLogLine('🎉 Inference completed successfully!', 'complete')
                   setIsRunning(false)
-                   // build gif url and notify parent
+                   
                    const gifUrl = `http://localhost:8000/gallery/${dataPath}/gif?cacheBust=${Date.now()}`
                    if (onSimulationComplete) {
                      onSimulationComplete(gifUrl)
