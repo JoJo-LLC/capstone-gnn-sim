@@ -15,7 +15,10 @@ from pathlib import Path
 from starlette.staticfiles import StaticFiles
 import json
 import numpy as np
+from PIL import Image
+import glob
 from pathlib import Path
+
 
 from fastapi.responses import FileResponse
 app = FastAPI()
@@ -43,7 +46,37 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+#Mount: /output/* -> backend/output/*
+app.mount("/output", StaticFiles(directory=str(BASE_DIR / "output"/ "0.4_6" / "eps")), name="output")
 
+# generating gif from pngs in output/{data_path}/eps
+@app.get("/gallery/{data_path}/gif")
+async def generate_gif(data_path: str):
+    # Base directory relative to project root
+    base_dir = os.path.join(os.path.dirname(__file__), "output")
+    
+    # Look inside backend/output/{data_path}/eps
+    output_dir = os.path.join(base_dir, data_path, "eps")
+    if not os.path.exists(output_dir):
+        raise HTTPException(status_code=404, detail="Output directory not found")
+
+    # Grab all PNGs in sorted order
+    png_files = sorted(glob.glob(os.path.join(output_dir, "*.png")))
+    if not png_files:
+        raise HTTPException(status_code=404, detail="No PNG files found")
+
+    # Convert into GIF
+    images = [Image.open(png).convert("RGB") for png in png_files]
+    gif_path = os.path.join(output_dir, f"{data_path}.gif")
+    images[0].save(
+        gif_path,
+        save_all=True,
+        append_images=images[1:],
+        duration=150,   # ms per frame
+        loop=0
+    )
+
+    return FileResponse(gif_path, media_type="image/gif", filename=f"{data_path}.gif")
 
 # Inserted /infer endpoint before root GET
 @app.post("/infer")
