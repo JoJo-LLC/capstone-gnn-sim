@@ -4,6 +4,9 @@ import './fgn-inference.css'
 const FGNInference = () => {
   const [nsteps, setNsteps] = useState(20)
   const [dataPath, setDataPath] = useState('0.4_6')
+  const [modelPath, setModelPath] = useState('./model_4_inference/NS5e-4_1e-2_R14_L5N64_PosNsx10/')
+  const [modelFile, setModelFile] = useState('model-066000.pt')
+  const [detonationXY, setDetonationXY] = useState('0,0')
   const [isRunning, setIsRunning] = useState(false)
   const [status, setStatus] = useState({ message: '', type: '' })
   const [logs, setLogs] = useState([
@@ -32,8 +35,56 @@ const FGNInference = () => {
       if (filePath) {
         const folderName = filePath.split('/')[0]
         setDataPath(folderName)
-        addLogLine(`📁 Selected folder: ${folderName}`, 'debug')
+        addLogLine(`📁 Selected data folder: ${folderName}`, 'debug')
       }
+      // Clear the input to prevent actual file upload
+      event.target.value = ''
+    }
+  }
+
+  const selectModelFolder = () => {
+    // Trigger the hidden file input for model folder selection
+    document.getElementById('modelFolderSelector').click()
+  }
+
+  const handleModelFolderSelect = (event) => {
+    const files = event.target.files
+    if (files && files.length > 0) {
+      // Get the first file and extract folder path from webkitRelativePath
+      const filePath = files[0].webkitRelativePath
+      if (filePath) {
+        // Extract the full folder path (could be nested)
+        const pathParts = filePath.split('/')
+        pathParts.pop() // Remove filename to get folder path
+        const folderPath = './' + pathParts.join('/') + '/'
+        setModelPath(folderPath)
+        addLogLine(`🧠 Selected model folder: ${folderPath}`, 'debug')
+      }
+      // Clear the input to prevent actual file upload
+      event.target.value = ''
+    }
+  }
+
+  const selectModelFile = () => {
+    // Trigger the hidden file input for .pt file selection
+    document.getElementById('modelFileSelector').click()
+  }
+
+  const handleModelFileSelect = (event) => {
+    const files = event.target.files
+    if (files && files.length > 0) {
+      const selectedFile = files[0]
+
+      // Validate it's a .pt file
+      if (!selectedFile.name.endsWith('.pt')) {
+        alert('Please select a .pt model file')
+        event.target.value = ''
+        return
+      }
+
+      setModelFile(selectedFile.name)
+      addLogLine(`🎯 Selected model file: ${selectedFile.name}`, 'debug')
+
       // Clear the input to prevent actual file upload
       event.target.value = ''
     }
@@ -52,8 +103,15 @@ const FGNInference = () => {
   }
 
   const startInference = async () => {
-    if (!nsteps || !dataPath) {
-      alert('Please enter both steps and data path')
+    if (!nsteps || !dataPath || !modelPath || !modelFile || !detonationXY) {
+      alert('Please enter all required fields: steps, data path, model path, model file, and detonation coordinates')
+      return
+    }
+
+    // Validate detonation_xy format (should be "x,y")
+    const detonationPattern = /^-?\d+(\.\d+)?,-?\d+(\.\d+)?$/
+    if (!detonationPattern.test(detonationXY)) {
+      alert('Detonation XY must be in format "x,y" (e.g., "0,0" or "10.5,-5.2")')
       return
     }
 
@@ -63,9 +121,11 @@ const FGNInference = () => {
     startTimeRef.current = Date.now()
     updateStatus(`Starting FGN inference (${nsteps} steps)...`, 'running')
     addLogLine(`🚀 Starting inference with ${nsteps} steps on ${dataPath}`, 'case')
+    addLogLine(`🧠 Using model: ${modelPath}${modelFile}`, 'debug')
+    addLogLine(`💥 Detonation coordinates: ${detonationXY}`, 'debug')
 
     try {
-      const url = `http://localhost:8000/run-npz-inference-progress/?data_path=${dataPath}&nsteps=${nsteps}&detonation_xy=0,0&expanded_search=false`
+      const url = `http://localhost:8000/run-npz-inference-progress/?data_path=${dataPath}&nsteps=${nsteps}&detonation_xy=${encodeURIComponent(detonationXY)}&expanded_search=false&model_path=${encodeURIComponent(modelPath)}&model_file=${encodeURIComponent(modelFile)}`
 
       const response = await fetch(url, {
         method: 'POST',
@@ -180,6 +240,18 @@ const FGNInference = () => {
         </div>
 
         <div className="fgn-control-group">
+          <label htmlFor="detonationXY">Detonation XY:</label>
+          <input
+            type="text"
+            id="detonationXY"
+            value={detonationXY}
+            onChange={(e) => setDetonationXY(e.target.value)}
+            disabled={isRunning}
+            placeholder="Enter coordinates (e.g., 0,0 or 10,5)"
+          />
+        </div>
+
+        <div className="fgn-control-group">
           <label htmlFor="dataPath">Data Path:</label>
           <div className="fgn-folder-selector">
             <input
@@ -212,6 +284,76 @@ const FGNInference = () => {
           </div>
           <div className="fgn-browse-note">
             💡 Browse only selects folder path - no files are uploaded
+          </div>
+        </div>
+
+        <div className="fgn-control-group">
+          <label htmlFor="modelPath">Model Path:</label>
+          <div className="fgn-folder-selector">
+            <input
+              type="text"
+              id="modelPath"
+              value={modelPath}
+              onChange={(e) => setModelPath(e.target.value)}
+              disabled={isRunning}
+              placeholder="Enter model folder path or use browse button"
+            />
+            <input
+              type="file"
+              id="modelFolderSelector"
+              style={{ display: 'none' }}
+              webkitdirectory=""
+              directory=""
+              multiple
+              onChange={handleModelFolderSelect}
+              disabled={isRunning}
+            />
+            <button
+              type="button"
+              className="fgn-folder-btn"
+              onClick={selectModelFolder}
+              disabled={isRunning}
+              title="Browse for model folder"
+            >
+              📁 Browse
+            </button>
+          </div>
+          <div className="fgn-browse-note">
+            💡 Browse only selects folder path - no files are uploaded
+          </div>
+        </div>
+
+        <div className="fgn-control-group">
+          <label htmlFor="modelFile">Model File:</label>
+          <div className="fgn-folder-selector">
+            <input
+              type="text"
+              id="modelFile"
+              value={modelFile}
+              onChange={(e) => setModelFile(e.target.value)}
+              disabled={isRunning}
+              placeholder="Enter .pt filename or use browse button"
+            />
+            <input
+              type="file"
+              id="modelFileSelector"
+              style={{ display: 'none' }}
+              accept=".pt"
+              onChange={handleModelFileSelect}
+              disabled={isRunning}
+            />
+            <button
+              type="button"
+              className="fgn-folder-btn"
+              onClick={selectModelFile}
+              disabled={isRunning}
+              title="Browse for .pt model file"
+            >
+              📁 Browse
+            </button>
+          </div>
+          <div className="fgn-browse-note">
+            💡 Browse selects .pt file - verify model path matches the file location
           </div>
         </div>
 
