@@ -1,7 +1,8 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, Request, Body
 import httpx
+
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse ,FileResponse
 from pydantic import BaseModel
 from typing import AsyncGenerator,Optional,List, Any
 import asyncio
@@ -47,7 +48,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 #Mount: /output/* -> backend/output/*
-app.mount("/output", StaticFiles(directory=str(BASE_DIR / "output"/ "0.4_6" / "eps")), name="output")
+app.mount("/output", StaticFiles(directory=str(BASE_DIR / "output")), name="output")
+
 
 # generating gif from pngs in output/{data_path}/eps
 @app.get("/gallery/{data_path}/gif")
@@ -77,6 +79,32 @@ async def generate_gif(data_path: str):
     )
 
     return FileResponse(gif_path, media_type="image/gif", filename=f"{data_path}.gif")
+    
+@app.get("/gallery/{data_path}/mp4")
+async def generate_mp4(data_path: str):
+    from moviepy.editor import VideoFileClip
+    base_dir = os.path.join(os.path.dirname(__file__), "output")
+    output_dir = os.path.join(base_dir, data_path, "eps")
+    gif_path = os.path.join(output_dir, f"{data_path}.gif")
+    mp4_path = os.path.join(output_dir, f"{data_path}.mp4")
+
+    # Ensure GIF exists (or generate it via the other function)
+    if not os.path.exists(gif_path):
+        # call the gif generator directly
+        await generate_gif(data_path)
+
+    if not os.path.exists(gif_path):
+        raise HTTPException(status_code=404, detail="GIF could not be generated")
+
+    # Convert GIF to MP4 using moviepy
+    try:
+        clip = VideoFileClip(gif_path)
+        clip.write_videofile(mp4_path, codec="libx264", audio=False, fps=clip.fps or 24)
+        clip.close()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error converting GIF to MP4: {e}")
+
+    return FileResponse(mp4_path, media_type="video/mp4", filename=f"{data_path}.mp4")
 
 # Inserted /infer endpoint before root GET
 @app.post("/infer")
@@ -185,10 +213,7 @@ async def upload_file(file: UploadFile = File(...)):
 async def run_simulation(body: BaseModel):
     # Implement your simulation logic here
     return {"message": "Simulation started", "data": body}
-# Mustefa's Visitor page gif passing test endpoint
-@app.get("/gif/{gif_name}")
-async def get_gif(gif_name: str):
-    return FileResponse(f"gifs/{gif_name}", media_type="image/gif")
+
 #Mustefa's visitor gif passing test endpoint
 @app.get("/gif/{gif_name}")
 async def get_gif(gif_name: str):
@@ -214,7 +239,7 @@ async def export_file(filename: str):
 # Mustefa's resource usage endpoint
 @app.get("/system/resource_usage")
 async def get_resource_usage():
-    cpu_usage = psutil.cpu_percent(interval=1)
+    cpu_usage = psutil.cpu_percent(interval=None)
     memory_info = psutil.virtual_memory()
     return {
         "cpu_usage": cpu_usage,
