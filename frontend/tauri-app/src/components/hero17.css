@@ -227,3 +227,21 @@
     width: 100%;
   }
 }
+/* Lock the two Hero tabs (Researcher / Visitor) to dark pill + white text */
+.hero17-actions .thq-button-filled,
+.hero17-actions .thq-button-outline {
+  background-color: #b33a0b !important;  /* dark fill */
+  color: #fff !important;                 /* white text */
+  border: none !important;
+  border-radius: 25px !important;
+  padding: 10px 25px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+/* Hover state to match the rest */
+.hero17-actions .thq-button-filled:hover,
+.hero17-actions .thq-button-outline:hover {
+  background-color: #922d09 !important;
+  color: #fff !important;
+}
