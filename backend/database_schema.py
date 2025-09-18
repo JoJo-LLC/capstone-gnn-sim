@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from bson import ObjectId
 import hashlib
 import json
@@ -103,6 +103,54 @@ class SimulationSchemas:
             "created_at": datetime(),
             "filePath" : ""
 
+        }
+    
+    def fgn_simulation_schema(self):
+        """Schema for FGN blast fragmentation simulations"""
+        return {
+            "simulationID": None,  # Auto generated Object ID
+            "simulation_type": "FGN_blast_fragmentation",
+            "data_path": "",  # e.g. "0.4_6"
+            "upload_date": datetime.now(timezone.utc),
+            
+            # LS-DYNA file info
+            "ls_dyna_files": {
+                "d3plot_files": [],  # ["d3plot", "d3plot01", "d3plot02"]
+                "ls_dyna_file_path": "",  # "/app/src/0.4_6"
+                "total_size_bytes": 0,
+                "file_count": 0
+            },
+            
+            # NPZ file conversion tracking
+            "npz_conversion": {
+                "status": "pending",  # "pending", "completed", "failed"
+                "npz_file_path": "",  # "/app/src/0.4_6/0.4_6.npz"
+                "npz_size_bytes": 0,
+                "conversion_time_seconds": 0,
+                "conversion_date": None
+            },
+            
+            # FGN execution tracking
+            "fgn_execution": {
+                "status": "not_started",  # "not_started", "running", "completed", "failed"
+                "parameters": {
+                    "nsteps": 0,
+                    "detonation_xy": "0,0",
+                    "expanded_search": False
+                },
+                "results": {
+                    "output_directory": "",  # "/app/src/output/0.4_6"
+                    "generated_files": {
+                        "eps": 0,
+                        "fragment": 0,
+                        "mass": 0,
+                        "property": 0
+                    },
+                    "execution_time_seconds": 0,
+                    "rollout_time_seconds": 0
+                },
+                "execution_date": None
+            }
         }
 
 class SimulationTypeDetector:
