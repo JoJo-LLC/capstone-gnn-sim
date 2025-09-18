@@ -19,6 +19,8 @@ import numpy as np
 from PIL import Image
 import glob
 from pathlib import Path
+import zipfile
+import io
 
 
 
@@ -101,6 +103,33 @@ async def generate_mp4(data_path: str):
         raise HTTPException(status_code=500, detail=f"Error converting PNGs to MP4: {e}")
 
     return FileResponse(mp4_path, media_type="video/mp4", filename=f"{data_path}.mp4")
+
+CSV_DIR = os.path.join(os.path.dirname(__file__), "output", "0.4_6", "property")
+
+
+@app.get("/csv/all")
+async def get_all_csv():
+    
+    if not os.path.exists(CSV_DIR):
+        raise HTTPException(status_code=404, detail="CSV directory not found")
+
+    csv_files = glob.glob(os.path.join(CSV_DIR, "*.csv"))
+    if not csv_files:
+        raise HTTPException(status_code=404, detail="No CSV files found")
+
+    # Create an in-memory zip
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
+        for file in csv_files:
+            arcname = os.path.basename(file)  # filename only
+            zipf.write(file, arcname=arcname)
+
+    zip_buffer.seek(0)
+    return StreamingResponse(
+        zip_buffer,
+        media_type="application/zip",
+        headers={"Content-Disposition": "attachment; filename=csv_files.zip"}
+    )
 
 # Inserted /infer endpoint before root GET
 @app.post("/infer")

@@ -6,76 +6,66 @@ const FGNInference = ({ onSimulationComplete }) => {
   const [dataPath, setDataPath] = useState('0.4_6')
   const [isRunning, setIsRunning] = useState(false)
   const [status, setStatus] = useState({ message: '', type: '' })
-  const [logs, setLogs] = useState([
-    { message: '📋 Ready to start FGN inference...', type: '', timestamp: new Date().toLocaleTimeString() },
-    { message: '💡 Click "Start Inference" to begin real-time progress tracking', type: 'debug', timestamp: new Date().toLocaleTimeString() }
-  ])
-
+  const [logs, setLogs] = useState([])
   const readerRef = useRef(null)
   const startTimeRef = useRef(null)
+  const logContainerRef = useRef(null)
+
+  const [resourceUsage, setResourceUsage] = useState({
+    cpu_usage: 0,
+    memory_total: 0,
+    memory_used: 0,
+    memory_free: 0
+  })
 
   const addLogLine = (message, type = '') => {
     const timestamp = new Date().toLocaleTimeString()
-    setLogs(prevLogs => [...prevLogs, { message, type, timestamp }])
+    setLogs(prev => [...prev, { message, type, timestamp }])
   }
-  const [resourceUsage, setResourceUsage] = useState({ cpu_usage: 0, memory_total: 0, memory_used: 0, memory_free: 0, });
 
-  const selectFolder = () => {
-    // Trigger the hidden file input for folder selection
-    document.getElementById('folderSelector').click()
-  }
+  const updateStatus = (message, type) => setStatus({ message, type })
+
+  const selectFolder = () => document.getElementById('folderSelector').click()
 
   const handleFolderSelect = (event) => {
     const files = event.target.files
     if (files && files.length > 0) {
-      // Get the first file and extract folder name from webkitRelativePath
       const filePath = files[0].webkitRelativePath
       if (filePath) {
         const folderName = filePath.split('/')[0]
         setDataPath(folderName)
         addLogLine(`📁 Selected folder: ${folderName}`, 'debug')
       }
-      // Clear the input to prevent actual file upload
       event.target.value = ''
     }
   }
 
-  const updateStatus = (message, type) => {
-    setStatus({ message, type })
-  }
-
-  const clearLog = () => {
-    setLogs([
-      { message: '📋 Ready to start FGN inference...', type: '', timestamp: new Date().toLocaleTimeString() },
-      { message: '💡 Click "Start Inference" to begin real-time progress tracking', type: 'debug', timestamp: new Date().toLocaleTimeString() }
-    ])
-    setStatus({ message: '', type: '' })
-  }
   useEffect(() => {
     let interval
     if (isRunning) {
       interval = setInterval(async () => {
         try {
-          const res = await fetch("http://localhost:8000/system/resource_usage")
+          const res = await fetch('http://localhost:8000/system/resource_usage')
           if (res.ok) {
             const data = await res.json()
             setResourceUsage(data)
           }
-        } catch (err) {
-          console.error("Error fetching resource usage", err)
-        }
-      }, 200)
+        } catch {}
+      }, 1000)
     }
     return () => clearInterval(interval)
   }, [isRunning])
 
-  const startInference = async () => {
-    if (!nsteps || !dataPath) {
-      alert('Please enter both steps and data path')
-      return
+  useEffect(() => {
+    if (logContainerRef.current) {
+      logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight
     }
+  }, [logs])
 
-    // Reset UI
+  const bytesToGB = (b) => (b / (1024 ** 3))
+
+  const startInference = async () => {
+    if (!nsteps || !dataPath) return alert('Please enter both steps and data path')
     setLogs([])
     setIsRunning(true)
     startTimeRef.current = Date.now()
@@ -84,83 +74,43 @@ const FGNInference = ({ onSimulationComplete }) => {
 
     try {
       const url = `http://localhost:8000/run-npz-inference-progress/?data_path=${dataPath}&nsteps=${nsteps}&detonation_xy=0,0&expanded_search=false`
-
       const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Accept': 'text/event-stream',
-          'Cache-Control': 'no-cache'
-        }
+        headers: { Accept: 'text/event-stream', 'Cache-Control': 'no-cache' }
       })
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
 
       const reader = response.body.getReader()
       readerRef.current = reader
       const decoder = new TextDecoder()
 
-      const processStream = async () => {
-        try {
-          while (true) {
-            const { done, value } = await reader.read()
-
-            if (done) {
-              setIsRunning(false)
-              break
-            }
-
-            const text = decoder.decode(value)
-            const lines = text.split('\n')
-
-            for (let line of lines) {
-              if (line.startsWith('data: ')) {
-                const data = line.substring(6).trim()
-
-                if (data === 'COMPLETE') {
-                  const elapsed = ((Date.now() - startTimeRef.current) / 1000).toFixed(1)
-                  updateStatus(`✅ Inference completed in ${elapsed}s`, 'complete')
-                  addLogLine('🎉 Inference completed successfully!', 'complete')
-                  setIsRunning(false)
-                   
-                   const gifUrl = `http://localhost:8000/gallery/${dataPath}/gif?cacheBust=${Date.now()}`
-                   if (onSimulationComplete) {
-                     onSimulationComplete(gifUrl)
-                   }
-
-                  return
-                } else if (data === 'ERROR') {
-                  updateStatus('❌ Inference failed', 'error')
-                  addLogLine('❌ Inference failed with errors', 'error')
-                  setIsRunning(false)
-                  return
-                } else if (data.includes('PROGRESS:')) {
-                  addLogLine(data, 'progress')
-                } else if (data.includes('CASE_') || data.includes('ROLLOUT_') || data.includes('POSTPROCESS_')) {
-                  addLogLine(data, 'case')
-                } else if (data.includes('[DEBUG]')) {
-                  addLogLine(data, 'debug')
-                } else if (data.includes('✓')) {
-                  addLogLine(data, 'complete')
-                } else if (data) {
-                  addLogLine(data)
-                }
-              }
-            }
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) { setIsRunning(false); break }
+        const text = decoder.decode(value)
+        const lines = text.split('\n')
+        for (let line of lines) {
+          if (!line.startsWith('data: ')) continue
+          const data = line.substring(6).trim()
+          if (data === 'COMPLETE') {
+            const elapsed = ((Date.now() - startTimeRef.current) / 1000).toFixed(1)
+            updateStatus(`✅ Inference completed in ${elapsed}s`, 'complete')
+            addLogLine('🎉 Inference completed successfully!', 'complete')
+            setIsRunning(false)
+            const gifUrl = `http://localhost:8000/gallery/${dataPath}/gif?cacheBust=${Date.now()}`
+            if (onSimulationComplete) onSimulationComplete(gifUrl)
+            return
+          } else if (data === 'ERROR') {
+            updateStatus('❌ Inference failed', 'error')
+            addLogLine('❌ Inference failed with errors', 'error')
+            setIsRunning(false)
+            return
+          } else if (data) {
+            addLogLine(data, /PROGRESS:/.test(data) ? 'progress' : '')
           }
-        } catch (error) {
-          console.error('Stream processing error:', error)
-          addLogLine('❌ Stream processing error: ' + error.message, 'error')
-          updateStatus('❌ Stream error', 'error')
-          setIsRunning(false)
         }
       }
-
-      await processStream()
-
     } catch (error) {
-      console.error('Connection error:', error)
       addLogLine('❌ Connection error: ' + error.message, 'error')
       updateStatus('❌ Connection error', 'error')
       setIsRunning(false)
@@ -177,17 +127,34 @@ const FGNInference = ({ onSimulationComplete }) => {
     addLogLine('Inference stopped by user', 'debug')
   }
 
-  // Auto-scroll to bottom when new logs are added
-  const logContainerRef = useRef(null)
-  useEffect(() => {
-    if (logContainerRef.current) {
-      logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight
-    }
-  }, [logs])
+  const memUsedGB = bytesToGB(resourceUsage.memory_used)
+  const memTotalGB = bytesToGB(resourceUsage.memory_total)
+  const memPct = resourceUsage.memory_total
+    ? ((resourceUsage.memory_used / resourceUsage.memory_total) * 100)
+    : 0
 
   return (
     <div className="fgn-inference-container">
-      <h3 className="fgn-inference-title"> FGN Inference</h3>
+      <div
+        style={{
+          position: 'fixed',
+          top: 12,
+          right: 12,
+          padding: '8px 12px',
+          background: 'rgba(20,20,20,0.9)',
+          color: '#fff',
+          fontSize: 12,
+          borderRadius: 8,
+          zIndex: 1000,
+          lineHeight: 1.4,
+          boxShadow: '0 2px 8px rgba(0,0,0,0.25)'
+        }}
+      >
+        <div>CPU: {Number(resourceUsage.cpu_usage || 0).toFixed(1)}%</div>
+        <div>MEM: {memUsedGB.toFixed(1)}/{memTotalGB.toFixed(1)} GB ({memPct.toFixed(1)}%)</div>
+      </div>
+
+      <h3 className="fgn-inference-title">FGN Inference</h3>
 
       <div className="fgn-inference-controls">
         <div className="fgn-control-group">
@@ -234,33 +201,14 @@ const FGNInference = ({ onSimulationComplete }) => {
               📁 Browse
             </button>
           </div>
-          <div className="fgn-browse-note">
-            💡 Browse only selects folder path - no files are uploaded
-          </div>
         </div>
 
         <div className="fgn-control-buttons">
-          <button
-            className="fgn-start-btn"
-            onClick={startInference}
-            disabled={isRunning}
-          >
+          <button className="fgn-start-btn" onClick={startInference} disabled={isRunning}>
             Start Inference
           </button>
-          <button
-            className="fgn-stop-btn"
-            onClick={stopInference}
-            disabled={!isRunning}
-          >
+          <button className="fgn-stop-btn" onClick={stopInference} disabled={!isRunning}>
             Stop
-          </button>
-          <button
-            className="fgn-clear-btn"
-            onClick={clearLog}
-            disabled={isRunning}
-            title="Clear log"
-          >
-            Clear Log
           </button>
         </div>
       </div>
