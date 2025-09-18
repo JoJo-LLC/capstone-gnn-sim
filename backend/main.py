@@ -21,6 +21,7 @@ import glob
 from pathlib import Path
 
 
+
 from fastapi.responses import FileResponse
 app = FastAPI()
 
@@ -82,27 +83,22 @@ async def generate_gif(data_path: str):
     
 @app.get("/gallery/{data_path}/mp4")
 async def generate_mp4(data_path: str):
-    from moviepy.editor import VideoFileClip
+    from moviepy.video.io.ImageSequenceClip import ImageSequenceClip
     base_dir = os.path.join(os.path.dirname(__file__), "output")
     output_dir = os.path.join(base_dir, data_path, "eps")
-    gif_path = os.path.join(output_dir, f"{data_path}.gif")
     mp4_path = os.path.join(output_dir, f"{data_path}.mp4")
 
-    # Ensure GIF exists (or generate it via the other function)
-    if not os.path.exists(gif_path):
-        # call the gif generator directly
-        await generate_gif(data_path)
+    png_files = sorted(glob.glob(os.path.join(output_dir, "*.png")))
+    if not png_files:
+        raise HTTPException(status_code=404, detail="No PNG files found")
 
-    if not os.path.exists(gif_path):
-        raise HTTPException(status_code=404, detail="GIF could not be generated")
-
-    # Convert GIF to MP4 using moviepy
     try:
-        clip = VideoFileClip(gif_path)
-        clip.write_videofile(mp4_path, codec="libx264", audio=False, fps=clip.fps or 24)
+        
+        clip = ImageSequenceClip(png_files, fps=6)  # adjust fps if needed
+        clip.write_videofile(mp4_path, codec="libx264", audio=False)
         clip.close()
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error converting GIF to MP4: {e}")
+        raise HTTPException(status_code=500, detail=f"Error converting PNGs to MP4: {e}")
 
     return FileResponse(mp4_path, media_type="video/mp4", filename=f"{data_path}.mp4")
 
