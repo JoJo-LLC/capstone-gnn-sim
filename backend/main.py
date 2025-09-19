@@ -1,7 +1,8 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, Request, Body
 import httpx
+
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse ,FileResponse
 from pydantic import BaseModel
 from typing import AsyncGenerator,Optional,List, Any
 import asyncio
@@ -15,7 +16,13 @@ from pathlib import Path
 from starlette.staticfiles import StaticFiles
 import json
 import numpy as np
+from PIL import Image
+import glob
 from pathlib import Path
+import zipfile
+import io
+
+
 
 from fastapi.responses import FileResponse
 app = FastAPI()
@@ -43,7 +50,86 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+#Mount: /output/* -> backend/output/*
+app.mount("/output", StaticFiles(directory=str(BASE_DIR / "output")), name="output")
 
+
+# generating gif from pngs in output/{data_path}/eps
+@app.get("/gallery/{data_path}/gif")
+async def generate_gif(data_path: str):
+    # Base directory relative to project root
+    base_dir = os.path.join(os.path.dirname(__file__), "output")
+    
+    # Look inside backend/output/{data_path}/eps
+    output_dir = os.path.join(base_dir, data_path, "eps")
+    if not os.path.exists(output_dir):
+        raise HTTPException(status_code=404, detail="Output directory not found")
+
+    # Grab all PNGs in sorted order
+    png_files = sorted(glob.glob(os.path.join(output_dir, "*.png")))
+    if not png_files:
+        raise HTTPException(status_code=404, detail="No PNG files found")
+
+    # Convert into GIF
+    images = [Image.open(png).convert("RGB") for png in png_files]
+    gif_path = os.path.join(output_dir, f"{data_path}.gif")
+    images[0].save(
+        gif_path,
+        save_all=True,
+        append_images=images[1:],
+        duration=150,   # ms per frame
+        loop=0
+    )
+
+    return FileResponse(gif_path, media_type="image/gif", filename=f"{data_path}.gif")
+    
+@app.get("/gallery/{data_path}/mp4")
+async def generate_mp4(data_path: str):
+    from moviepy.video.io.ImageSequenceClip import ImageSequenceClip
+    base_dir = os.path.join(os.path.dirname(__file__), "output")
+    output_dir = os.path.join(base_dir, data_path, "eps")
+    mp4_path = os.path.join(output_dir, f"{data_path}.mp4")
+
+    png_files = sorted(glob.glob(os.path.join(output_dir, "*.png")))
+    if not png_files:
+        raise HTTPException(status_code=404, detail="No PNG files found")
+
+    try:
+        
+        clip = ImageSequenceClip(png_files, fps=6)  # adjust fps if needed
+        clip.write_videofile(mp4_path, codec="libx264", audio=False)
+        clip.close()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error converting PNGs to MP4: {e}")
+
+    return FileResponse(mp4_path, media_type="video/mp4", filename=f"{data_path}.mp4")
+
+CSV_DIR = os.path.join(os.path.dirname(__file__), "output", "0.4_6", "property")
+
+
+@app.get("/csv/all")
+async def get_all_csv():
+    
+    if not os.path.exists(CSV_DIR):
+        raise HTTPException(status_code=404, detail="CSV directory not found")
+
+    csv_files = glob.glob(os.path.join(CSV_DIR, "*.csv"))
+    if not csv_files:
+        raise HTTPException(status_code=404, detail="No CSV files found")
+
+    # Create an in-memory zip
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
+        for file in csv_files:
+            arcname = os.path.basename(file)  # filename only
+            zipf.write(file, arcname=arcname)
+
+    zip_buffer.seek(0)
+    return StreamingResponse(
+        zip_buffer,
+        media_type="application/zip",
+        headers={"Content-Disposition": "attachment; filename=csv_files.zip"}
+    )
 
 # Inserted /infer endpoint before root GET
 @app.post("/infer")
@@ -152,10 +238,7 @@ async def upload_file(file: UploadFile = File(...)):
 async def run_simulation(body: BaseModel):
     # Implement your simulation logic here
     return {"message": "Simulation started", "data": body}
-# Mustefa's Visitor page gif passing test endpoint
-@app.get("/gif/{gif_name}")
-async def get_gif(gif_name: str):
-    return FileResponse(f"gifs/{gif_name}", media_type="image/gif")
+
 #Mustefa's visitor gif passing test endpoint
 @app.get("/gif/{gif_name}")
 async def get_gif(gif_name: str):
@@ -181,7 +264,7 @@ async def export_file(filename: str):
 # Mustefa's resource usage endpoint
 @app.get("/system/resource_usage")
 async def get_resource_usage():
-    cpu_usage = psutil.cpu_percent(interval=1)
+    cpu_usage = psutil.cpu_percent(interval=None)
     memory_info = psutil.virtual_memory()
     return {
         "cpu_usage": cpu_usage,

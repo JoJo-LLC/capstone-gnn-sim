@@ -1,27 +1,37 @@
 @echo off
-echo Choose execution mode:
+setlocal
+
+:: Dynamically set PROJECT_DIR to the directory containing this script
+set "PROJECT_DIR=%~dp0"
+:: Remove trailing backslash if it exists
+if "%PROJECT_DIR:~-1%"=="\" set "PROJECT_DIR=%PROJECT_DIR:~0,-1%"
+
+:: Stop any container publishing on port 8000
+for /f "tokens=*" %%i in ('docker ps --filter "publish=8000" -q') do docker stop %%i
+
+echo Select execution mode:
 echo 1. CPU
 echo 2. GPU
-set /p choice="Enter choice (1 or 2): "
+set /p mode=Enter your choice [1-2]: 
 
-if "%choice%"=="1" (
-    echo Starting backend (CPU mode)...
-    cd /d "%~dp0"
-    docker compose --profile base --profile cpu up --build -d
-) else if "%choice%"=="2" (
-    echo Starting backend (GPU mode)...
-    cd /d "%~dp0"
-    docker compose --profile base --profile gpu up --build -d
+cd /d "%PROJECT_DIR%"
+
+if "%mode%"=="1" (
+    echo Starting in CPU mode...
+    docker compose -f docker-compose.cpu.yml up --build -d
+) else if "%mode%"=="2" (
+    echo Starting in GPU mode...
+    docker compose -f docker-compose.gpu.yml up --build -d
 ) else (
-    echo Invalid choice. Exiting.
-    exit /b
+    echo Invalid selection. Exiting.
+    exit /b 1
 )
 
-:: Wait for backend to boot
-echo Waiting for backend to start...
-timeout /t 5 >nul
+:: Wait a bit to make sure backend is up
+timeout /t 2 /nobreak >nul
 
-:: Start frontend (Tauri)
-echo Starting frontend server...
-cd /d "%~dp0frontend\\tauri-app"
+:: Launch the Tauri frontend app
+cd /d "%PROJECT_DIR%\frontend\tauri-app"
 cargo tauri dev
+
+endlocal
