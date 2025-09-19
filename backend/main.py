@@ -570,8 +570,36 @@ async def convert_d3plot_to_npz(data_path: str):
         npz_path = os.path.join(data_source_path, npz_file)
         
         conversion_start_time = time.time()
+
+        # DATABASE: Create connection and initial record
+        db = DatabaseConnection()
+        try:
+            total_size = sum(os.path.getsize(os.path.join(data_source_path, f)) for f in d3plot_files)
+            simulation_id = await db.store_fgn_simulation(
+                data_path=data_path,
+                d3plot_files=d3plot_files,
+                ls_dyna_path=data_source_path,
+                total_size=total_size
+            )
+        except Exception as e:
+            print(f"Database initialization failed: {e}")
+            simulation_id = None
         
         if os.path.exists(npz_path):
+            #Database: creates simulation record and update NPZ status for existing file
+            #ensures database tracking even when NPZ file already exists
+            try:
+                npz_size = os.path.getsize(npz_path)
+                await db.update_npz_conversion_status(
+                    data_path=data_path,
+                    npz_file_path=npz_path,
+                    size_bytes=npz_size,
+                    conversion_time=0
+                )
+                await db.close_connection()
+            except Exception as e:
+                print(f"Database update failed: {e}")
+            
             return {
                 "status": "already_exists",
                 "message": f"NPZ file already exists: {npz_file}",
@@ -612,7 +640,7 @@ async def convert_d3plot_to_npz(data_path: str):
             # Verify NPZ was created
             npz_created = os.path.exists(npz_path)
             npz_size = os.path.getsize(npz_path) if npz_created else 0
-            
+
             return {
                 "status": "success",
                 "message": f"Successfully converted d3plot to NPZ",
@@ -823,6 +851,33 @@ async def run_npz_inference_with_progress(data_path: str, nsteps: int, detonatio
     nsteps = validate_nsteps(nsteps)
     detonation_xy = validate_detonation_xy(detonation_xy)
     
+    # DATABASE: Work with existing or create new record
+    db = DatabaseConnection()
+    try:
+        existing_sim = await db.get_fgn_simulation_by_data_path(data_path)
+        
+        if not existing_sim:
+            # Create new record if conversion wasn't called first
+            d3plot_files = [f for f in os.listdir(data_source_path) if f.startswith('d3plot')] if os.path.exists(data_source_path) else []
+            total_size = sum(os.path.getsize(os.path.join(data_source_path, f)) for f in d3plot_files) if d3plot_files else 0
+            
+            await db.store_fgn_simulation(
+                data_path=data_path,
+                d3plot_files=d3plot_files,
+                ls_dyna_path=data_source_path,
+                total_size=total_size
+            )
+            
+            npz_size = os.path.getsize(npz_path)
+            await db.update_npz_conversion_status(
+                data_path=data_path,
+                npz_file_path=npz_path,
+                size_bytes=npz_size,
+                conversion_time=0
+            )
+    except Exception as e:
+        print(f"Database setup failed: {e}")
+
     # Rate limiting check
     async with inference_lock:
         if current_inference_count >= MAX_CONCURRENT_INFERENCE:
@@ -851,6 +906,33 @@ async def run_npz_inference_with_progress(data_path: str, nsteps: int, detonatio
         if not os.path.exists(npz_path):
             raise HTTPException(status_code=400, detail=f"NPZ file not found. Use /convert-d3plot-to-npz/ first.")
         
+        
+        # DATABASE: Store initial simulation and NPZ status
+        try:
+            # Get file info for database
+            d3plot_files = [f for f in os.listdir(data_source_path) if f.startswith('d3plot')] if os.path.exists(data_source_path) else []
+            total_size = sum(os.path.getsize(os.path.join(data_source_path, f)) for f in d3plot_files) if d3plot_files else 0
+            
+            # Store simulation record
+            simulation_id = await db.store_fgn_simulation(
+                data_path=data_path,
+                d3plot_files=d3plot_files,
+                ls_dyna_path=data_source_path,
+                total_size=total_size
+            )
+            
+            # Update NPZ status (already exists)
+            npz_size = os.path.getsize(npz_path)
+            await db.update_npz_conversion_status(
+                data_path=data_path,
+                npz_file_path=npz_path,
+                size_bytes=npz_size,
+                conversion_time=0
+            )
+        except Exception as e:
+            print(f"Database setup failed: {e}")
+
+
         async def stream_inference():
             """Generator that streams inference progress in real-time using asyncio"""
             try:
@@ -934,6 +1016,20 @@ async def run_npz_inference_with_progress(data_path: str, nsteps: int, detonatio
                                 output_files[subdir] = 0
                         yield f"data: Generated files: {output_files}\n\n"
                     
+                        # DATABASE: Record execution results
+                        try:
+                            parameters = {"nsteps": nsteps, "detonation_xy": detonation_xy, "expanded_search": expanded_search}
+                            results = {"output_directory": case_output_dir, "generated_files": output_files}
+                            await db.update_fgn_execution_results(
+                                data_path=data_path,
+                                parameters=parameters,
+                                results=results,
+                                execution_time=total_time,
+                                rollout_time=total_time
+                            )
+                        except Exception as e:
+                            yield f"data: Database update failed: {e}\n\n"
+
                     yield f"data: COMPLETE\n\n"
                 else:
                     yield f"data: ✗ FGN inference failed with return code {return_code}\n\n"
@@ -955,10 +1051,39 @@ async def run_npz_inference_with_progress(data_path: str, nsteps: int, detonatio
                 "X-Accel-Buffering": "no"  # Disable nginx buffering
             }
         )
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to start inference: {str(e)}")
     finally:
         # Always decrement the counter when inference completes
         async with inference_lock:
             current_inference_count -= 1
+        # Close database connection
+        try:
+            await db.close_connection()
+        except:
+            pass
+
+
+# FGN Database Query Endpoints
+@app.get("/fgn-simulations/")
+async def list_fgn_simulations(db: DatabaseConnection = Depends(get_db)):
+    """
+    Get summary list of all FGN simulations for management/overview
+    Returns: List with simulation status, file counts, and basic metadata
+    can be used by frontend simulation management interface
+    """
+    simulations = await db.list_all_fgn_simulations()
+    return {"simulations": simulations}
+
+@app.get("/fgn-simulation/{data_path}")
+async def get_fgn_simulation(data_path: str, db: DatabaseConnection = Depends(get_db)):
+    """
+    Get complete FGN simulation record by data_path identifier
+    Returns: Full simulation document with NPZ conversion and execution status
+    can be used by frontend to display simulation details and progress tracking
+    """
+    simulation = await db.get_fgn_simulation_by_data_path(data_path)
+    if not simulation:
+        raise HTTPException(status_code=404, detail="Simulation not found")
+    return {"status": "found", "simulation": simulation}
