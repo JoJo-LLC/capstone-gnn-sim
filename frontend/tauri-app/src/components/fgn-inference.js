@@ -279,6 +279,9 @@ const FGNInference = ({ onSimulationComplete }) => {
               📁 Browse
             </button>
           </div>
+           <div className="fgn-browse-note">
+            💡 Browse only selects folder path - no files are uploaded
+          </div>
         </div>
 
         <div className="fgn-control-group">
