@@ -1,10 +1,8 @@
 from pymongo import AsyncMongoClient
-from datetime import datetime
-import os
+from datetime import datetime, timezone
+import os, hashlib, json
 
-#Currently implementing async connection
-#Need to not hardcode the login variables - env variables?
-#Need to add some form of logging
+
 # To use with FastAPI, call 'await db.get_gallery_items'
 #Example response (will be in json format):
 
@@ -67,41 +65,38 @@ class DatabaseConnection:
             print(f"Error with collection setup: {e}")
             return False
 
-    async def store_fgn_simulation(self, data_path, d3plot_files, ls_dyna_path, total_size):
+    async def store_fgn_simulation(self, data_path, d3plot_files, ls_dyna_path, total_size, parameter_hash=None):
         """
-        Creates initial FGN simulation record in database
-        usage:
-        - called at start of inference pipeline to create tracking record
-        - used by: /run-fgn-inference/ endpoint
-        - parameters:
-          - data_path: Unique identifier (e.g., "0.4_6")
-          - d3plot_files: List of LS-DYNA file names
-          - ls_dyna_path: Full path to source files
-          - total_size: Combined size of all d3plot files in bytes
-        - returns: String ID of created record, or None if failed
+        Create a new simulation record with unique simulation_key.
+        The simulation_key is a combination of data_path + parameter_hash to make sure each
+        unique combination of dataset and parameters gets its own record in our database
+        e.g same input file can have different steps, xy params, expanded search
+        we treat all as different simulations for user purposes
+        returns a MongoDB document ID or None if failed
         """
         try:
-            #Check for existing simulation to prevent duplicates
-            existing = await self.collections['fgn_simulations'].find_one({"data_path": data_path})
+            # Create unique simulation key
+            # example simulation_key = "0.4_6_7Wssdi92f..." this is made up but the generated hash ensures uniqueness
+            sim_key = f"{data_path}_{parameter_hash}" if parameter_hash else data_path
+            
+            # Prevent duplicate records with same key
+            existing = await self.collections['fgn_simulations'].find_one({"simulation_key": sim_key})
             if existing:
-                print(f"FGN simulation {data_path} already exists")
+                print(f"FGN simulation {sim_key} already exists")
                 return str(existing["_id"])
             
-            #import schema template and populate with actual data
             from database_schema import SimulationSchemas
             schemas = SimulationSchemas()
             fgn_doc = schemas.fgn_simulation_schema()
             
-            # Fills in the actual data from params
             fgn_doc['data_path'] = data_path
+            fgn_doc['simulation_key'] = sim_key
             fgn_doc['ls_dyna_files']['d3plot_files'] = d3plot_files
             fgn_doc['ls_dyna_files']['ls_dyna_file_path'] = ls_dyna_path
             fgn_doc['ls_dyna_files']['total_size_bytes'] = total_size
             fgn_doc['ls_dyna_files']['file_count'] = len(d3plot_files)
             
-            #Insert into MongoDB and return the generated ID
             result = await self.collections['fgn_simulations'].insert_one(fgn_doc)
-            print(f"Stored FGN simulation {data_path} with ID: {result.inserted_id}")
             return str(result.inserted_id)
             
         except Exception as e:
@@ -148,9 +143,11 @@ class DatabaseConnection:
             print(f"Error updating NPZ conversion status: {e}")
             return False
 
-    async def update_fgn_execution_results(self, data_path, parameters, results, execution_time, rollout_time):
+    async def update_fgn_execution_results(self, sim_key, data_path, parameters, results, execution_time, rollout_time):
         """
-        uppdates database record after successful FGN inference execution
+        Store simulation results after inference completes.
+        Uses sim_key (not data_path) to ensure we update the correct record
+        when multiple simulations use the same dataset with different parameters.
         usage:
         -called after inference pipeline completes successfully
         -used by: /run-fgn-inference/ and /run-npz-inference/ endpoints
@@ -163,7 +160,6 @@ class DatabaseConnection:
         - returns: Boolean indicating success
         """
         try:
-            #prepare update for fgn_execution subdocument
             update_data = {
                 "fgn_execution.status": "completed",
                 "fgn_execution.parameters": parameters,
@@ -174,9 +170,9 @@ class DatabaseConnection:
                 "fgn_execution.execution_date": datetime.now(timezone.utc)
             }
             
-            #update the simulation record with execution results
+             # Query by simulation_key to find the specific simulation
             result = await self.collections['fgn_simulations'].update_one(
-                {"data_path": data_path},
+                {"simulation_key": sim_key},  # Uses the passed sim_key directly, we need this to avoid overlapping simulations with same input file
                 {"$set": update_data}
             )
             
@@ -238,10 +234,14 @@ class DatabaseConnection:
         #use projection to limit returned fields for performance
         try:
             cursor = self.collections['fgn_simulations'].find({}, {
+                "simulation_key": 1,
                 "data_path": 1,
                 "upload_date": 1,
                 "npz_conversion.status": 1,
                 "fgn_execution.status": 1,
+                "fgn_execution.parameters.nsteps": 1,
+                "fgn_execution.execution_date": 1,      
+                "fgn_execution.results.execution_time_seconds": 1,  
                 "ls_dyna_files.file_count": 1,
                 "ls_dyna_files.total_size_bytes": 1
             })
@@ -258,6 +258,109 @@ class DatabaseConnection:
         except Exception as e:
             print(f"Error listing FGN simulations: {e}")
             return []
+
+    async def log_simulation_activity(self, simulation_key, user="researcher", action="simulation_started"):
+        """Simple activity logging for admin page using simulation_key"""
+        try:
+
+            # Extract data_path properly - everything before the hash
+            # Extract data_path from simulation_key for readability
+            # "0.4_6_hash" -> "0.4_6" (rsplit from right to handle underscores in data_path)
+            parts = simulation_key.rsplit('_', 1)  # Split from right, once
+            data_path = parts[0] if len(parts) > 1 else simulation_key
+
+            log_entry = {
+                "data_path": data_path,
+                "user": user,
+                "action": action,
+                "timestamp": datetime.now(timezone.utc)
+            }
+            
+            await self.collections['fgn_simulations'].update_one(
+                {"simulation_key": simulation_key},
+                {"$push": {"activity_log": log_entry}}
+            )
+        except Exception as e:
+            print(f"Activity logging failed: {e}")
+
+
+    async def check_duplicate_simulation(self, data_path, parameters):
+        """
+        Check if simulation with these exact parameters already exists
+        Returns: existing simulation record if found, None otherwise
+        """
+        try:
+            # Create hash from data_path + parameters
+            param_string = json.dumps(parameters, sort_keys=True)
+            simulation_key = f"{data_path}_{param_string}"
+            param_hash = hashlib.md5(simulation_key.encode()).hexdigest()
+            
+            # Check if this exact simulation already ran
+            existing = await self.collections['fgn_simulations'].find_one({
+                "data_path": data_path,
+                "fgn_execution.parameter_hash": param_hash,
+                "fgn_execution.status": "completed"
+            })
+            
+            if existing:
+                print(f"Duplicate simulation found: {data_path} with hash {param_hash}")
+                return existing
+            return None
+            
+        except Exception as e:
+            print(f"Error checking for duplicates: {e}")
+            return None
+
+    async def store_simulation_with_hash(self, data_path, parameters):
+        """Store parameter hash when creating simulation"""
+        param_string = json.dumps(parameters, sort_keys=True)
+        simulation_key = f"{data_path}_{param_string}"
+        param_hash = hashlib.md5(simulation_key.encode()).hexdigest()
+        
+        # Store hash with simulation
+        await self.collections['fgn_simulations'].update_one(
+            {"data_path": data_path},
+            {"$set": {"fgn_execution.parameter_hash": param_hash}}
+        )
+
+    async def update_simulation_gif(self, data_path, gif_path, gif_size):
+        """Store GIF file metadata after generation"""
+        try:
+            update_data = {
+                "fgn_execution.results.gif_file.path": gif_path,
+                "fgn_execution.results.gif_file.size_bytes": gif_size,
+                "fgn_execution.results.gif_file.created_date": datetime.now(timezone.utc)
+            }
+            
+            result = await self.collections['fgn_simulations'].update_one(
+                {"data_path": data_path},
+                {"$set": update_data}
+            )
+            
+            if result.modified_count > 0:
+                print(f"Updated GIF info for {data_path}")
+                return True
+            return False
+        except Exception as e:
+            print(f"Error updating GIF info: {e}")
+            return False
+
+
+    async def get_fgn_simulation_by_simulation_key(self, simulation_key):
+        """
+        Retrieve simulation by its unique simulation_key.
+        Used by admin page to fetch details for a specific parameter combination.
+        """
+        try:
+            simulation = await self.collections['fgn_simulations'].find_one({"simulation_key": simulation_key})
+            
+            if simulation:
+                simulation["_id"] = str(simulation["_id"])
+                return simulation
+            return None
+        except Exception as e:
+            print(f"Error retrieving simulation: {e}")
+            return None
 
     async def get_gallery_items(self):
         """Get all gallery items for API response"""

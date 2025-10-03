@@ -111,6 +111,7 @@ class SimulationSchemas:
             "simulationID": None,  # Auto generated Object ID
             "simulation_type": "FGN_blast_fragmentation",
             "data_path": "",  # e.g. "0.4_6"
+            "simulation_key": "",  # unique identifier = data_path + parameter_hash, added this because sims with the same dataset and different params were still getting overwritten
             "upload_date": datetime.now(timezone.utc),
             
             # LS-DYNA file info
@@ -133,25 +134,41 @@ class SimulationSchemas:
             # FGN execution tracking
             "fgn_execution": {
                 "status": "not_started",  # "not_started", "running", "completed", "failed"
+                "parameter_hash": "",
                 "parameters": {
                     "nsteps": 0,
                     "detonation_xy": "0,0",
                     "expanded_search": False
                 },
                 "results": {
-                    "output_directory": "",  # "/app/src/output/0.4_6"
+                    "output_directory": "",  # e.g. "/app/src/output/0.4_6"
                     "generated_files": {
                         "eps": 0,
                         "fragment": 0,
                         "mass": 0,
                         "property": 0
                     },
+                     "gif_file": {  # Gif metadata tracking
+                        "path": "",
+                        "size_bytes": 0,
+                        "created_date": None
+                    },
                     "execution_time_seconds": 0,
                     "rollout_time_seconds": 0
                 },
                 "execution_date": None
+            },
+
+            "activity_log": [],  # Stores list of activity entries
+            "error_log": {  # Stores error details
+                "error_message": "",
+                "error_type": "",
+                "timestamp": None,
+                "stack_trace": ""
             }
         }
+
+
 
 class SimulationTypeDetector:
     """Detect simulation type from .npz file arrays"""

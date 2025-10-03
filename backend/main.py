@@ -1,3 +1,4 @@
+from time import timezone
 from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, Request, Body
 import httpx
 
@@ -21,6 +22,9 @@ import glob
 from pathlib import Path
 import zipfile
 import io
+import datetime
+from datetime import datetime, timezone 
+import hashlib
 
 
 
@@ -60,6 +64,9 @@ async def generate_gif(data_path: str):
     # Base directory relative to project root
     base_dir = os.path.join(os.path.dirname(__file__), "output")
     
+    #Create connection to the database
+    db = DatabaseConnection()
+
     # Look inside backend/output/{data_path}/eps
     output_dir = os.path.join(base_dir, data_path, "eps")
     if not os.path.exists(output_dir):
@@ -80,6 +87,14 @@ async def generate_gif(data_path: str):
         duration=150,   # ms per frame
         loop=0
     )
+
+    #After GIF is created, store metadata
+    try:
+        gif_size = os.path.getsize(gif_path)
+        await db.update_simulation_gif(data_path, gif_path, gif_size)
+        await db.close_connection()
+    except Exception as e:
+        print(f"Failed to update GIF metadata: {e}")
 
     return FileResponse(gif_path, media_type="image/gif", filename=f"{data_path}.gif")
     
@@ -641,6 +656,17 @@ async def convert_d3plot_to_npz(data_path: str):
             npz_created = os.path.exists(npz_path)
             npz_size = os.path.getsize(npz_path) if npz_created else 0
 
+            try:
+                await db.update_npz_conversion_status(
+                    data_path=data_path,
+                    npz_file_path=npz_path,
+                    size_bytes=npz_size,
+                    conversion_time=conversion_time
+                )
+                await db.close_connection()
+            except Exception as e:
+                print(f"Database update failed: {e}")
+
             return {
                 "status": "success",
                 "message": f"Successfully converted d3plot to NPZ",
@@ -851,32 +877,63 @@ async def run_npz_inference_with_progress(data_path: str, nsteps: int, detonatio
     nsteps = validate_nsteps(nsteps)
     detonation_xy = validate_detonation_xy(detonation_xy)
     
-    # DATABASE: Work with existing or create new record
+
+    
     db = DatabaseConnection()
+    # Check for duplicate simulations
+    parameters = {"nsteps": nsteps, "detonation_xy": detonation_xy, "expanded_search": expanded_search}
+
     try:
-        existing_sim = await db.get_fgn_simulation_by_data_path(data_path)
         
-        if not existing_sim:
-            # Create new record if conversion wasn't called first
-            d3plot_files = [f for f in os.listdir(data_source_path) if f.startswith('d3plot')] if os.path.exists(data_source_path) else []
-            total_size = sum(os.path.getsize(os.path.join(data_source_path, f)) for f in d3plot_files) if d3plot_files else 0
-            
-            await db.store_fgn_simulation(
-                data_path=data_path,
-                d3plot_files=d3plot_files,
-                ls_dyna_path=data_source_path,
-                total_size=total_size
-            )
-            
-            npz_size = os.path.getsize(npz_path)
-            await db.update_npz_conversion_status(
-                data_path=data_path,
-                npz_file_path=npz_path,
-                size_bytes=npz_size,
-                conversion_time=0
-            )
+        # Calculate parameter hash for unique identification
+        # Hash ensures each unique parameter combination gets its own DB record
+        param_string = json.dumps(parameters, sort_keys=True) #for consistent order
+        simulation_key = f"{data_path}_{param_string}"
+        param_hash = hashlib.md5(simulation_key.encode()).hexdigest() # generates the 32 character hex string
+        
+        sim_key = f"{data_path}_{param_hash}" # e.g., "0.4_6_7faa7d54850dcc690dbfe4b6ed613a76"
+
+        #duplicate check
+        duplicate = await db.collections['fgn_simulations'].find_one({
+            "simulation_key": sim_key,
+            "fgn_execution.status": "completed"
+        })
+        
+        #returns the data of existing simulation if duplicate found
+        if duplicate:
+            await db.close_connection()
+            return {
+                "status": "duplicate_found",
+                "message": "This exact simulation was already run",
+                "existing_simulation": {
+                    "data_path": data_path,
+                    "parameters": duplicate["fgn_execution"]["parameters"],
+                    "execution_date": str(duplicate["fgn_execution"].get("execution_date")),
+                    "execution_time": duplicate["fgn_execution"]["results"].get("execution_time_seconds")
+                }
+            }
     except Exception as e:
-        print(f"Database setup failed: {e}")
+        print(f"Duplicate check failed: {e}")
+
+    try:
+        # Log activity using simulation_key
+        await db.collections['fgn_simulations'].update_one(
+            {"simulation_key": sim_key},
+            {"$push": {"activity_log": {
+                "data_path": data_path,
+                "user": "researcher",
+                "action": "simulation_started",
+                "timestamp": datetime.now(timezone.utc)
+            }}}
+        )
+        
+        # Store parameter hash
+        await db.collections['fgn_simulations'].update_one(
+            {"simulation_key": sim_key},
+            {"$set": {"fgn_execution.parameter_hash": param_hash}}
+        )
+    except Exception as e:
+        print(f"Activity logging failed: {e}")
 
     # Rate limiting check
     async with inference_lock:
@@ -899,42 +956,56 @@ async def run_npz_inference_with_progress(data_path: str, nsteps: int, detonatio
         if not os.path.exists(data_source_path):
             raise HTTPException(status_code=404, detail=f"Data path not found")
         
+        npz_file = f"{data_path}.npz"
+        npz_path = os.path.join(data_source_path, npz_file)
+
+        # Calculate size if file exists
+        if os.path.exists(npz_path):
+            npz_size = os.path.getsize(npz_path)
+        else:
+            npz_size = 0
+
+        try:
+            #Check if this simulation with these params already exists
+            existing_sim = await db.get_fgn_simulation_by_simulation_key(sim_key)
+            
+            if not existing_sim:
+                # Create new record if conversion wasn't called first
+                # Each parameter combination gets unique entry
+                d3plot_files = [f for f in os.listdir(data_source_path) if f.startswith('d3plot')] if os.path.exists(data_source_path) else []
+                total_size = sum(os.path.getsize(os.path.join(data_source_path, f)) for f in d3plot_files) if d3plot_files else 0
+                
+                await db.store_fgn_simulation(
+                    data_path=data_path,
+                    d3plot_files=d3plot_files,
+                    ls_dyna_path=data_source_path,
+                    total_size=total_size,
+                    parameter_hash=param_hash #Pass hash to create unique simulation_key
+                )
+                
+                await db.update_npz_conversion_status(
+                    data_path=data_path,
+                    npz_file_path=npz_path,
+                    size_bytes=npz_size,
+                    conversion_time=0
+                )
+        except Exception as e:
+            print(f"Database setup failed: {e}")    
+
+
         # Check for required NPZ file
         npz_file = f"{data_path}.npz"
         npz_path = os.path.join(data_source_path, npz_file)
         
         if not os.path.exists(npz_path):
             raise HTTPException(status_code=400, detail=f"NPZ file not found. Use /convert-d3plot-to-npz/ first.")
-        
-        
-        # DATABASE: Store initial simulation and NPZ status
-        try:
-            # Get file info for database
-            d3plot_files = [f for f in os.listdir(data_source_path) if f.startswith('d3plot')] if os.path.exists(data_source_path) else []
-            total_size = sum(os.path.getsize(os.path.join(data_source_path, f)) for f in d3plot_files) if d3plot_files else 0
-            
-            # Store simulation record
-            simulation_id = await db.store_fgn_simulation(
-                data_path=data_path,
-                d3plot_files=d3plot_files,
-                ls_dyna_path=data_source_path,
-                total_size=total_size
-            )
-            
-            # Update NPZ status (already exists)
-            npz_size = os.path.getsize(npz_path)
-            await db.update_npz_conversion_status(
-                data_path=data_path,
-                npz_file_path=npz_path,
-                size_bytes=npz_size,
-                conversion_time=0
-            )
-        except Exception as e:
-            print(f"Database setup failed: {e}")
 
 
         async def stream_inference():
             """Generator that streams inference progress in real-time using asyncio"""
+
+            db_inner = DatabaseConnection()
+
             try:
                 # Start the inference process using our progress-enabled script  
                 inference_cmd = [
@@ -1020,19 +1091,49 @@ async def run_npz_inference_with_progress(data_path: str, nsteps: int, detonatio
                         try:
                             parameters = {"nsteps": nsteps, "detonation_xy": detonation_xy, "expanded_search": expanded_search}
                             results = {"output_directory": case_output_dir, "generated_files": output_files}
-                            await db.update_fgn_execution_results(
+
+                            print(f"DEBUG: About to update execution results for {data_path}")
+
+                            await db_inner.update_fgn_execution_results(
+                                sim_key=sim_key,
                                 data_path=data_path,
                                 parameters=parameters,
                                 results=results,
                                 execution_time=total_time,
                                 rollout_time=total_time
                             )
+
+                            print(f"DEBUG: About to log completion for {data_path}")
+
+                            # Use sim_key for activity logging of activity completion
+                            await db_inner.log_simulation_activity(sim_key, user="researcher", action="simulation_completed")
+    
+                            await db_inner.close_connection()  # Close the inner connection
+
+                            print(f"DEBUG: Successfully logged completion")
+
                         except Exception as e:
+                            print(f"DEBUG: Database update exception: {e}")
                             yield f"data: Database update failed: {e}\n\n"
 
                     yield f"data: COMPLETE\n\n"
                 else:
                     yield f"data: ✗ FGN inference failed with return code {return_code}\n\n"
+                    
+                    # Log failure and store error
+                    try:
+                        await db.log_simulation_activity(sim_key, user="researcher", action="simulation_failed")
+                        await db.collections['fgn_simulations'].update_one(
+                            {"simulation_key": sim_key},
+                            {"$set": {
+                                "error_log.error_message": f"Inference failed with return code {return_code}",
+                                "error_log.error_type": "InferenceError",
+                                "error_log.timestamp": datetime.now(timezone.utc)
+                            }}
+                        )
+                    except Exception as e:
+                        print(f"Error logging failed: {e}")
+                    
                     yield f"data: ERROR\n\n"
                     
             except Exception as e:
@@ -1084,6 +1185,14 @@ async def get_fgn_simulation(data_path: str, db: DatabaseConnection = Depends(ge
     can be used by frontend to display simulation details and progress tracking
     """
     simulation = await db.get_fgn_simulation_by_data_path(data_path)
+    if not simulation:
+        raise HTTPException(status_code=404, detail="Simulation not found")
+    return {"status": "found", "simulation": simulation}
+
+@app.get("/fgn-simulation-by-key/{simulation_key}")
+async def get_fgn_simulation_by_key(simulation_key: str, db: DatabaseConnection = Depends(get_db)):
+    """Get simulation by unique simulation_key"""
+    simulation = await db.get_fgn_simulation_by_simulation_key(simulation_key)
     if not simulation:
         raise HTTPException(status_code=404, detail="Simulation not found")
     return {"status": "found", "simulation": simulation}
