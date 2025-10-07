@@ -14,12 +14,15 @@
 /* Step cards styling */
 .steps2-step {
   background-color: rgba(255, 204, 153, 0.9) !important;
-  color: black !important;
   border-radius: 8px;
   padding: 20px;
 }
-.steps2-step h3,
-.steps2-step p,
-.steps2-step span {
-  color: black !important;
+
+/* Force ALL text in Steps section (titles, body, numbers) to black */
+.steps-section,
+.steps-section *,
+.steps-section *::before,
+.steps-section *::after {
+  color: #000 !important;
+  opacity: 1 !important;
 }

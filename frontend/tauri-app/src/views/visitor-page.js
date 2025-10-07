@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import Navbar8 from "../components/navbar8";   // ✅ navbar added
+import Navbar8 from "../components/navbar8";   // ✅ navbar
+import Footer4 from "../components/footer4";   // ✅ footer
 import "./visitor-page.css";
 
 const VisitorPage = () => {
@@ -22,7 +23,7 @@ const VisitorPage = () => {
 
         {/* Render one button per GIF */}
         <div className="visitor-buttons">
-          {GIFS.map(g => (
+          {GIFS.map((g) => (
             <button
               key={g.id}
               className={`btn ${active === g.url ? "active" : ""}`}
@@ -40,6 +41,19 @@ const VisitorPage = () => {
           </div>
         </div>
       </div>
+
+      {/* ✅ Footer at bottom */}
+      <Footer4
+        link1="About Us"
+        link2="Contact Us"
+        link3="FAQs"
+        link4="Support"
+        link5="Blog"
+        termsLink="Terms of Service"
+        cookiesLink="Cookies Policy"
+        privacyLink="Privacy Policy"
+        logoSrc="https://images.unsplash.com/photo-1521058001910-55b77aba2203"
+      />
     </div>
   );
 };
