@@ -813,7 +813,7 @@ async def run_npz_inference(data_path: str, nsteps: int, detonation_xy: str = "0
 
 # Security validation functions
 def validate_data_path(data_path: str) -> str:
-    """Validate and sanitize data_path parameter"""
+    """Validate and sanitize data_path parameter - returns folder name only"""
     # Allow relative folder names (e.g., "0.4_6", "my_data.folder")
     # Users should place their data folders in backend/ directory before running
 
@@ -838,17 +838,16 @@ def validate_data_path(data_path: str) -> str:
             detail="Invalid data_path: must be alphanumeric with dots/underscores/hyphens, max 50 chars"
         )
 
-    # Construct full path inside container
+    # Check if folder exists and provide helpful error
     full_path = os.path.join('/app/src', data_path)
-
-    # Check if path exists and provide helpful error
     if not os.path.exists(full_path):
         raise HTTPException(
             status_code=404,
             detail=f"Data folder '{data_path}' not found. Please ensure the folder exists in your 'backend/' directory."
         )
 
-    return full_path
+    # Return just the folder name - endpoints will construct full paths as needed
+    return data_path
 
 def validate_nsteps(nsteps: int) -> int:
     """Validate nsteps parameter"""
