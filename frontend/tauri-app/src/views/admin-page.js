@@ -4,17 +4,20 @@ import Navbar8 from '../components/navbar8'
 import Footer4 from '../components/footer4'
 import './admin-page.css'
 
+const BASE = 'http://localhost:8000'
+
 const AdminPage = () => {
   const [simulations, setSimulations] = useState([])
   const [selectedSim, setSelectedSim] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [gifUrl, setGifUrl] = useState(null)
+  const [ensuringGif, setEnsuringGif] = useState(false)
 
-  // Fetch simulation list on mount
   useEffect(() => {
-    fetch('http://localhost:8000/fgn-simulations/')
+    fetch(`${BASE}/fgn-simulations/`)
       .then(res => res.json())
       .then(data => {
-        setSimulations(data.simulations)
+        setSimulations(data.simulations || [])
         setLoading(false)
       })
       .catch(err => {
@@ -23,19 +26,43 @@ const AdminPage = () => {
       })
   }, [])
 
-  // Fetch details when simulation is selected using simulation_key
-  const handleRowClick = (simulation) => {
-    fetch(`http://localhost:8000/fgn-simulation-by-key/${simulation.simulation_key}`)
-      .then(res => res.json())
-      .then(data => setSelectedSim(data.simulation))
-      .catch(err => console.error('Failed to fetch simulation details:', err))
+  const ensureGifAndGetUrl = async (sim) => {
+    const key = sim.simulation_key
+    const directUrl = `${BASE}/gifs/${key}.gif`
+
+    try {
+      const head = await fetch(directUrl, { method: 'HEAD' })
+      if (head.ok) return `${directUrl}?t=${Date.now()}`
+    } catch (_) {}
+
+    const genUrl = `${BASE}/gallery/${encodeURIComponent(sim.data_path)}/gif?sim_key=${encodeURIComponent(key)}`
+    await fetch(genUrl) // generate on demand
+    return `${directUrl}?t=${Date.now()}`
   }
 
-  // Get status color
+  const handleRowClick = async (sim) => {
+    setSelectedSim(null)
+    setGifUrl(null)
+    setEnsuringGif(true)
+
+    try {
+      const res = await fetch(`${BASE}/fgn-simulation-by-key/${encodeURIComponent(sim.simulation_key)}`)
+      const data = await res.json()
+      setSelectedSim(data.simulation)
+
+      const url = await ensureGifAndGetUrl(sim)
+      setGifUrl(url)
+    } catch (e) {
+      console.error('Failed to fetch simulation details or GIF:', e)
+    } finally {
+      setEnsuringGif(false)
+    }
+  }
+
   const getStatusColor = (sim) => {
-    if (sim.fgn_execution?.status === 'completed') return '#4ade80' // green
-    if (sim.fgn_execution?.status === 'failed') return '#ef4444' // red
-    return '#fbbf24' // yellow
+    if (sim.fgn_execution?.status === 'completed') return '#4ade80'
+    if (sim.fgn_execution?.status === 'failed') return '#ef4444'
+    return '#fbbf24'
   }
 
   return (
@@ -43,7 +70,7 @@ const AdminPage = () => {
       <Helmet>
         <title>Admin Dashboard</title>
       </Helmet>
-      
+
       <Navbar8
         link1="Researcher"
         link2="Visitor"
@@ -55,9 +82,8 @@ const AdminPage = () => {
 
       <div className="admin-content">
         <h1 className="admin-title">Simulation History</h1>
-        
+
         <div className="split-container">
-          {/* LEFT PANEL - Simulation Records Table */}
           <div className="left-panel">
             {loading ? (
               <p>Loading simulations...</p>
@@ -78,27 +104,29 @@ const AdminPage = () => {
                   {simulations.map((sim) => (
                     <tr
                       key={sim._id}
-                      onClick={() => handleRowClick(sim)}  // Pass the whole sim object
-                      className={selectedSim?._id === sim._id ? 'selected' : ''}  // Compare by _id
+                      onClick={() => handleRowClick(sim)}
+                      className={selectedSim?._id === sim._id ? 'selected' : ''}
                     >
                       <td>
-                        <span 
+                        <span
                           className="status-indicator"
                           style={{ backgroundColor: getStatusColor(sim) }}
                         />
                       </td>
                       <td>{sim.data_path}</td>
                       <td>
-                        {sim.fgn_execution?.execution_date 
+                        {sim.fgn_execution?.execution_date
                           ? new Date(sim.fgn_execution.execution_date).toLocaleString('en-AU', {
                               timeZone: 'Australia/Perth'
                             })
                           : 'N/A'}
                       </td>
                       <td>
-                        {sim.fgn_execution?.results?.execution_time_seconds?.toFixed(1) || 'N/A'}
+                        {sim.fgn_execution?.results?.execution_time_seconds != null
+                          ? Number(sim.fgn_execution.results.execution_time_seconds).toFixed(1)
+                          : 'N/A'}
                       </td>
-                      <td>{sim.fgn_execution?.parameters?.nsteps || 'N/A'}</td>
+                      <td>{sim.fgn_execution?.parameters?.nsteps ?? 'N/A'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -106,7 +134,6 @@ const AdminPage = () => {
             )}
           </div>
 
-          {/* RIGHT PANEL - Details/GIF Display */}
           <div className="right-panel">
             {!selectedSim ? (
               <div className="empty-state">
@@ -115,23 +142,19 @@ const AdminPage = () => {
             ) : (
               <div className="details-container">
                 <h2>{selectedSim.data_path}</h2>
-                
-                {/* GIF Display */}
-                {selectedSim.fgn_execution?.results?.gif_file?.path ? (
-                  <div className="gif-container">
-                    <img 
-                      src={`http://localhost:8000/gallery/${selectedSim.data_path}/gif`}
-                      alt={`${selectedSim.data_path} animation`}
-                      className="sim-gif"
-                    />
-                  </div>
-                ) : (
-                  <div className="gif-container">
-                  <p>No GIF available for this simulation</p>
-                  </div>
-                )}
 
-                {/* Simulation Parameters */}
+                <div className="gif-container" style={{ minHeight: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {ensuringGif ? (
+                    <p>Preparing preview…</p>
+                  ) : gifUrl ? (
+                    <img src={gifUrl} alt={`${selectedSim.data_path} animation`} className="sim-gif" />
+                  ) : (
+                    <div className="gif-container">
+                  <p>No GIF available for this simulation</p>
+                    </div>
+                )}
+                </div>
+
                 <div className="details-section">
                   <h3>Parameters</h3>
                   <p><strong>Steps:</strong> {selectedSim.fgn_execution?.parameters?.nsteps}</p>
@@ -139,10 +162,9 @@ const AdminPage = () => {
                   <p><strong>Expanded Search:</strong> {selectedSim.fgn_execution?.parameters?.expanded_search ? 'Yes' : 'No'}</p>
                 </div>
 
-                {/* Results */}
                 <div className="details-section">
                   <h3>Results</h3>
-                  <p><strong>Execution Time:</strong> {selectedSim.fgn_execution?.results?.execution_time_seconds?.toFixed(2)}s</p>
+                  <p><strong>Execution Time:</strong> {selectedSim.fgn_execution?.results?.execution_time_seconds != null ? Number(selectedSim.fgn_execution.results.execution_time_seconds).toFixed(2) : 'N/A'}s</p>
                   <p><strong>Generated Files:</strong></p>
                   <ul>
                     {Object.entries(selectedSim.fgn_execution?.results?.generated_files || {}).map(([key, count]) => (
@@ -151,25 +173,23 @@ const AdminPage = () => {
                   </ul>
                 </div>
 
-                {/* Activity Log */}
                 {selectedSim.activity_log?.length > 0 && (
                   <div className="details-section">
                     <h3>Activity Log</h3>
                     {selectedSim.activity_log.map((log, idx) => (
                       <p key={idx}>
-                        <strong>{log.action}</strong> by {log.user} at {new Date(log.timestamp).toLocaleString()}
+                        <strong>{log.action}</strong> by {log.user} at {new Date(log.timestamp).toLocaleString('en-AU', { timeZone: 'Australia/Perth' })}
                       </p>
                     ))}
                   </div>
                 )}
 
-                {/* Error Log */}
                 {selectedSim.error_log?.error_message && (
                   <div className="details-section error-section">
                     <h3>Error Details</h3>
                     <p><strong>Type:</strong> {selectedSim.error_log.error_type}</p>
                     <p><strong>Message:</strong> {selectedSim.error_log.error_message}</p>
-                    <p><strong>Time:</strong> {new Date(selectedSim.error_log.timestamp).toLocaleString()}</p>
+                    <p><strong>Time:</strong> {new Date(selectedSim.error_log.timestamp).toLocaleString('en-AU', { timeZone: 'Australia/Perth' })}</p>
                   </div>
                 )}
               </div>

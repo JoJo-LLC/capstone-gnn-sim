@@ -56,48 +56,64 @@ app.add_middleware(
 )
 #Mount: /output/* -> backend/output/*
 app.mount("/output", StaticFiles(directory=str(BASE_DIR / "output")), name="output")
-
+GIFS_DIR = BASE_DIR / "output" / "gifs"
+GIFS_DIR.mkdir(parents=True, exist_ok=True)
+app.mount("/gifs", StaticFiles(directory=str(GIFS_DIR)), name="gifs")
 
 # generating gif from pngs in output/{data_path}/eps
 @app.get("/gallery/{data_path}/gif")
-async def generate_gif(data_path: str):
-    # Base directory relative to project root
+async def generate_gif(data_path: str, sim_key: Optional[str] = None):
     base_dir = os.path.join(os.path.dirname(__file__), "output")
-    
-    #Create connection to the database
-    db = DatabaseConnection()
-
-    # Look inside backend/output/{data_path}/eps
     output_dir = os.path.join(base_dir, data_path, "eps")
     if not os.path.exists(output_dir):
         raise HTTPException(status_code=404, detail="Output directory not found")
 
-    # Grab all PNGs in sorted order
     png_files = sorted(glob.glob(os.path.join(output_dir, "*.png")))
     if not png_files:
         raise HTTPException(status_code=404, detail="No PNG files found")
 
-    # Convert into GIF
     images = [Image.open(png).convert("RGB") for png in png_files]
-    gif_path = os.path.join(output_dir, f"{data_path}.gif")
+
+    # filename = <sim_key>.gif if provided, else fallback to <data_path>.gif
+    gif_name = f"{sim_key}.gif" if sim_key else f"{data_path}.gif"
+    gif_path = GIFS_DIR / gif_name
+
     images[0].save(
-        gif_path,
+        str(gif_path),
         save_all=True,
         append_images=images[1:],
-        duration=150,   # ms per frame
+        duration=150,
         loop=0
     )
 
-    #After GIF is created, store metadata
+    # persist metadata to DB
     try:
-        gif_size = os.path.getsize(gif_path)
-        await db.update_simulation_gif(data_path, gif_path, gif_size)
+        db = DatabaseConnection()
+        size_bytes = os.path.getsize(gif_path)
+        created = datetime.now(timezone.utc)
+
+        if sim_key:
+            # update by simulation_key
+            await db.collections["fgn_simulations"].update_one(
+                {"simulation_key": sim_key},
+                {"$set": {
+                    "fgn_execution.results.gif_file": {
+                        "path": f"/gifs/{gif_name}",
+                        "size_bytes": size_bytes,
+                        "created_at": created
+                    }
+                }},
+                upsert=False
+            )
+        else:
+            # legacy fallback: update by data_path if your helper exists
+            await db.update_simulation_gif(data_path, str(gif_path), size_bytes)
+
         await db.close_connection()
     except Exception as e:
         print(f"Failed to update GIF metadata: {e}")
 
-    return FileResponse(gif_path, media_type="image/gif", filename=f"{data_path}.gif")
-    
+    return FileResponse(str(gif_path), media_type="image/gif", filename=gif_name)
 @app.get("/gallery/{data_path}/mp4")
 async def generate_mp4(data_path: str):
     from moviepy.video.io.ImageSequenceClip import ImageSequenceClip
