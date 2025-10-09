@@ -121,9 +121,23 @@ const FGNInference = ({ onSimulationComplete, onLogMessage, onStatusChange, onRu
   }, [isRunning, onRunningStateChange])
 
   // Notify parent component when progress changes
+  // Progress breakdown: Initialization (5%) + Rollout steps (85%) + Post-processing (10%)
   useEffect(() => {
     if (onProgressUpdate && totalSteps > 0) {
-      const percentage = (currentStep / totalSteps) * 100
+      let percentage = 0
+
+      if (currentStep === 0) {
+        // Initialization phase
+        percentage = 5
+      } else if (currentStep > 0 && currentStep < totalSteps) {
+        // Rollout phase: 5% + (step progress × 85%)
+        const rolloutProgress = (currentStep / totalSteps) * 85
+        percentage = 5 + rolloutProgress
+      } else if (currentStep === totalSteps) {
+        // Post-processing phase
+        percentage = 90
+      }
+
       onProgressUpdate(percentage, currentStep, totalSteps)
     }
   }, [currentStep, totalSteps, onProgressUpdate])
@@ -176,6 +190,10 @@ const FGNInference = ({ onSimulationComplete, onLogMessage, onStatusChange, onRu
           if (!line.startsWith('data: ')) continue
           const data = line.substring(6).trim()
           if (data === 'COMPLETE') {
+            // Set to 100% before completing
+            if (onProgressUpdate) {
+              onProgressUpdate(100, totalSteps, totalSteps)
+            }
             const elapsed = ((Date.now() - startTimeRef.current) / 1000).toFixed(1)
             updateStatus(`✅ Inference completed in ${elapsed}s`, 'complete')
             addLogLine('🎉 Inference completed successfully!', 'complete')
@@ -197,6 +215,15 @@ const FGNInference = ({ onSimulationComplete, onLogMessage, onStatusChange, onRu
               setCurrentStep(step)
               setTotalSteps(total)
             }
+
+            // Detect post-processing phase
+            if (data.includes('Post-processing') || data.includes('Generating visualization')) {
+              // Set to post-processing state (will show 90%+)
+              if (totalSteps > 0) {
+                setCurrentStep(totalSteps)
+              }
+            }
+
             addLogLine(data, /PROGRESS:/.test(data) ? 'progress' : '')
           }
         }

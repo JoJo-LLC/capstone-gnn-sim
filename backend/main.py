@@ -979,7 +979,7 @@ async def run_npz_inference_with_progress(data_path: str, nsteps: int, detonatio
                             yield f"data: {line}\n\n"
                         elif "CASE_COMPLETE:" in line:
                             yield f"data: {line}\n\n"
-                        elif "INITIALIZATION:" in line:
+                        elif "INITIALISATION:" in line:
                             yield f"data: {line}\n\n"
                         else:
                             # Send other output as debug info (limited)

@@ -4,6 +4,21 @@ import './preview-output.css'
 const PreviewOutput = ({ previewUrl, isInferenceRunning, progress }) => {
   const { percentage = 0, current = 0, total = 0 } = progress || {}
 
+  // Determine phase based on progress
+  const getPhaseText = () => {
+    if (percentage <= 5 && current === 0) {
+      return 'Initialisation... (5%)'
+    } else if (current > 0 && current < total) {
+      return `Step ${current} of ${total} (${Math.round(percentage)}%)`
+    } else if (percentage >= 90 && percentage < 100) {
+      return `Post-processing... (${Math.round(percentage)}%)`
+    } else if (percentage === 100) {
+      return 'Complete! (100%)'
+    } else {
+      return `${Math.round(percentage)}%`
+    }
+  }
+
   return (
     <div className="preview-output-container">
       <label className="thq-heading-3">Result Preview</label>
@@ -19,9 +34,8 @@ const PreviewOutput = ({ previewUrl, isInferenceRunning, progress }) => {
               ></div>
             </div>
             <p className="progress-text">
-              {current > 0 ? `Step ${current} of ${total} (${Math.round(percentage)}%)` : 'Initializing...'}
+              {getPhaseText()}
             </p>
-            <p className="loading-subtext">This may take 70-90 seconds</p>
           </div>
         ) : previewUrl ? (
           <img src={previewUrl} alt="Simulation Output" className="preview-output-image" />
