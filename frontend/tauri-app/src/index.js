@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import {
   BrowserRouter as Router,
@@ -13,6 +13,7 @@ import VisitorPage from './views/visitor-page'
 import AdminPage from './views/admin-page'
 import ResearcherPage from './views/researcher-page'
 import NotFound from './views/not-found'
+import StartupModal from './components/StartupModal'
 
 const App = () => {
   return (
@@ -29,5 +30,22 @@ const App = () => {
   )
 }
 
+
+const Root = () => {
+  const [modeSelected, setModeSelected] = useState(false)
+
+  const handleModeSelect = (selectedMode) => {
+    setModeSelected(true)
+    console.log('Selected execution mode:', selectedMode)
+  }
+
+  return (
+    <>
+      {!modeSelected && <StartupModal onStartupComplete={handleModeSelect} />}
+      {modeSelected && <App />}
+    </>
+  )
+}
+
 const root = ReactDOM.createRoot(document.getElementById('app'))
-root.render(<App />)
+root.render(<Root />)
