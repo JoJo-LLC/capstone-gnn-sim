@@ -39,13 +39,18 @@
 .startup-modal-subtitle {
   font-size: 1rem;
   opacity: 0.85;
+  min-height: 3.6em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .startup-modal-buttons {
   display: flex;
   justify-content: center;
   gap: 1rem;
-  margin-top: 1.25rem;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
 }
 
 .startup-button {
@@ -55,8 +60,22 @@
   font-weight: 600;
   font-size: 0.95rem;
   cursor: pointer;
-  transition: all 0.2s ease-in-out;
   min-width: 120px;
+  position: relative;
+  z-index: 1;
+  outline: none;
+  background-color: #4ade80;
+  color: #111;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.startup-button:hover {
+  background-color: #32cd60;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+}
+
+.startup-button:focus {
+  outline: none;
 }
 
 .startup-button.cpu,
@@ -68,8 +87,7 @@
 .startup-button.cpu:hover,
 .startup-button.gpu:hover {
   background-color: #32cd60;
-  color: #000;
-  transform: scale(1.05);
+  transform: scale(1.03);
   box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
 }
 
@@ -110,7 +128,7 @@
 
 /* status & spinner row */
 .startup-status {
-  margin-top: 2rem;
+  margin-top: 1.25rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -124,6 +142,12 @@
   font-size: 1rem;
   font-weight: 500;
   line-height: 1.6;
+}
+
+.startup-modal-status-wrapper {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: center;
 }
 
 /* fade out animation when modal closes */
@@ -153,7 +177,6 @@
   transform: none;
   box-shadow: none;
 }
-
 
 /* Spinner animation */
 .startup-spinner {
