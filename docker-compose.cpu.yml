@@ -5,7 +5,6 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile.cpu
-    container_name: gnn_cpu_backend
     ports:
       - "8000:8000"
     environment:
@@ -22,7 +21,6 @@ services:
 
   mongodb:
     image: mongo:7.0
-    container_name: structural_sim_mongodb
     restart: unless-stopped
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin

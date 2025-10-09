@@ -149,8 +149,10 @@ const AdminPage = () => {
                   ) : gifUrl ? (
                     <img src={gifUrl} alt={`${selectedSim.data_path} animation`} className="sim-gif" />
                   ) : (
-                    <p>No GIF available for this simulation</p>
-                  )}
+                    <div className="gif-container">
+                  <p>No GIF available for this simulation</p>
+                    </div>
+                )}
                 </div>
 
                 <div className="details-section">
