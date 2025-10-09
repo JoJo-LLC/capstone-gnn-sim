@@ -7,7 +7,7 @@ import FGNInference from './fgn-inference'
 
 import './researcher-tools.css'
 
-const ResearcherTools = ({ mode, setMode }) => {
+const ResearcherTools = ({ mode, setMode, isInferenceRunning, setIsInferenceRunning }) => {
   const [previewUrl, setPreviewUrl] = useState(null)
   const [logs, setLogs] = useState([])
   const [terminalStatus, setTerminalStatus] = useState({ message: 'System initialized...', type: 'info' })
@@ -42,6 +42,20 @@ const ResearcherTools = ({ mode, setMode }) => {
       })
     }
   }, [logs])
+
+  // Navigation guard: warn user before leaving page during inference
+  React.useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (isInferenceRunning) {
+        e.preventDefault()
+        e.returnValue = '⚠️ FGN Inference is running. Leaving this page will stop the process. Are you sure?'
+        return e.returnValue
+      }
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [isInferenceRunning])
 
   return (
     <>
@@ -109,6 +123,7 @@ const ResearcherTools = ({ mode, setMode }) => {
               onSimulationComplete={setPreviewUrl}
               onLogMessage={addLogLine}
               onStatusChange={setTerminalStatus}
+              onRunningStateChange={setIsInferenceRunning}
             />
           </div>
 

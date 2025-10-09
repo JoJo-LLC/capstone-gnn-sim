@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import './fgn-inference.css'
 
-const FGNInference = ({ onSimulationComplete, onLogMessage, onStatusChange }) => {
+const FGNInference = ({ onSimulationComplete, onLogMessage, onStatusChange, onRunningStateChange }) => {
   const [nsteps, setNsteps] = useState(20)
   const [dataPath, setDataPath] = useState('0.4_6')
   const [modelPath, setModelPath] = useState('./model_4_inference/NS5e-4_1e-2_R14_L5N64_PosNsx10/')
@@ -110,6 +110,13 @@ const FGNInference = ({ onSimulationComplete, onLogMessage, onStatusChange }) =>
     }
     return () => clearInterval(interval)
   }, [isRunning])
+
+  // Notify parent component when running state changes
+  useEffect(() => {
+    if (onRunningStateChange) {
+      onRunningStateChange(isRunning)
+    }
+  }, [isRunning, onRunningStateChange])
 
 
   const bytesToGB = (b) => (b / (1024 ** 3))

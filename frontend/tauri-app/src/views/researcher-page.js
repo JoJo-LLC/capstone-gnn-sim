@@ -1,5 +1,6 @@
-import React, { Fragment, useState } from 'react'
+import React, { Fragment, useState, useEffect } from 'react'
 import { Helmet } from 'react-helmet'
+import { useNavigate, useLocation } from 'react-router-dom'
 
 import Navbar8 from '../components/navbar8'
 import ResearcherTools from '../components/researcher-tools'
@@ -7,7 +8,63 @@ import ResearcherTools from '../components/researcher-tools'
 import './researcher-page.css'
 
 const ResearcherPage = (props) => {
-  const [mode, setMode] = useState('cpu');
+  const [mode, setMode] = useState('cpu')
+  const [isInferenceRunning, setIsInferenceRunning] = useState(false)
+  const navigate = useNavigate()
+  const location = useLocation()
+
+  // Block navigation when inference is running
+  useEffect(() => {
+    const handleNavigation = (e) => {
+      if (isInferenceRunning) {
+        const confirmLeave = window.confirm(
+          '⚠️ FGN Inference is running. Leaving this page will stop the process.\n\nAre you sure you want to leave?'
+        )
+        if (!confirmLeave) {
+          e.preventDefault()
+          // Stay on current page
+          window.history.pushState(null, '', location.pathname)
+        }
+      }
+    }
+
+    // Intercept all link clicks when inference is running
+    const handleLinkClick = (e) => {
+      if (isInferenceRunning) {
+        // Check if clicked element or its parent is a link
+        const link = e.target.closest('a')
+        if (link && link.getAttribute('href')) {
+          const href = link.getAttribute('href')
+          // Only intercept if navigating away from current page
+          if (href !== location.pathname) {
+            const confirmLeave = window.confirm(
+              '⚠️ FGN Inference is running. Leaving this page will stop the process.\n\nAre you sure you want to leave?'
+            )
+            if (!confirmLeave) {
+              e.preventDefault()
+              e.stopPropagation()
+            }
+          }
+        }
+      }
+    }
+
+    // Listen for popstate (back/forward button)
+    window.addEventListener('popstate', handleNavigation)
+    // Intercept link clicks
+    document.addEventListener('click', handleLinkClick, true)
+
+    // Prevent navigation by pushing current state when trying to leave
+    if (isInferenceRunning) {
+      window.history.pushState(null, '', location.pathname)
+    }
+
+    return () => {
+      window.removeEventListener('popstate', handleNavigation)
+      document.removeEventListener('click', handleLinkClick, true)
+    }
+  }, [isInferenceRunning, location.pathname])
+
   return (
     <div className="researcher-page">
       <Helmet>
@@ -34,7 +91,12 @@ const ResearcherPage = (props) => {
       />
 
       <div className="researcher-main-container">
-        <ResearcherTools mode={mode} setMode={setMode} />
+        <ResearcherTools
+          mode={mode}
+          setMode={setMode}
+          isInferenceRunning={isInferenceRunning}
+          setIsInferenceRunning={setIsInferenceRunning}
+        />
       </div>
 
     </div>
