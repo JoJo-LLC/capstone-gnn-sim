@@ -1,42 +1,86 @@
-import React, { useState } from "react";
-import Navbar8 from "../components/navbar8";   // ✅ navbar added
+import React, { useState, useRef, useEffect } from "react";
+import Navbar8 from "../components/navbar8";
 import "./visitor-page.css";
 
 const VisitorPage = () => {
-  const GIFS = [
-    { id: 1, label: "Single Frame", url: "http://127.0.0.1:8000/assets/gifs/GNN_1.gif" },
-    { id: 2, label: "Frame by Frame", url: "http://127.0.0.1:8000/assets/gifs/Hello.gif" },
-    { id: 3, label: "Side by side", url: "http://127.0.0.1:8000/assets/gifs/rollout_2.gif" }
+  const ITEMS = [
+    { id: 1, label: "Single Frame", type: "gif", url: "http://127.0.0.1:8000/assets/gifs/GNN_01.gif" },
+    { id: 2, label: "Frame by Frame", type: "video", url: "http://127.0.0.1:8000/assets/videos/GNN_01.mp4" },
+    { id: 3, label: "Side by Side", type: "video", url: "http://127.0.0.1:8000/assets/videos/rollout_2.mp4" }
   ];
 
-  const [active, setActive] = useState(GIFS[0].url);
+  const [active, setActive] = useState(ITEMS[0]);
+  const [duration, setDuration] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+
+  const videoRef = useRef(null);
+
+  // keep slider synced with video playback
+  useEffect(() => {
+    if (active.type !== "video") return;
+
+    const video = videoRef.current;
+    if (!video) return;
+
+    const updateTime = () => setCurrentTime(video.currentTime);
+    video.addEventListener("timeupdate", updateTime);
+    return () => video.removeEventListener("timeupdate", updateTime);
+  }, [active]);
 
   return (
     <div className="visitor-page">
-      {/* ✅ Navbar at the top */}
       <Navbar8 />
 
       <div className="visitor-overlay">
         <h1 className="visitor-title">👋 Welcome, Visitor!</h1>
         <p className="visitor-subtitle">Explore our example simulations below</p>
 
-        {/* Render one button per GIF */}
+        {/* Buttons */}
         <div className="visitor-buttons">
-          {GIFS.map(g => (
+          {ITEMS.map(item => (
             <button
-              key={g.id}
-              className={`btn ${active === g.url ? "active" : ""}`}
-              onClick={() => setActive(g.url)}
+              key={item.id}
+              className={`btn ${active.id === item.id ? "active" : ""}`}
+              onClick={() => {
+                setActive(item);
+                setCurrentTime(0);
+              }}
             >
-              {g.label}
+              {item.label}
             </button>
           ))}
         </div>
 
-        {/* Show currently active GIF */}
+        {/* Preview Area */}
         <div className="visitor-preview-container">
           <div className="preview-box">
-            <img src={active} alt="Selected GIF" className="gif-img" />
+            {active.type === "gif" && (
+              <img src={active.url} alt="Selected GIF" className="gif-img" />
+            )}
+
+            {active.type === "video" && (
+              <div className="frame-by-frame">
+                <video
+                  ref={videoRef}
+                  src={active.url}
+                  className="gif-img"
+                  onLoadedMetadata={() => setDuration(videoRef.current.duration)}
+                />
+                <input
+                  type="range"
+                  min="0"
+                  max={duration}
+                  step="0.04"   // ~25fps
+                  value={currentTime}
+                  onChange={(e) => {
+                    const t = Number(e.target.value);
+                    setCurrentTime(t);
+                    videoRef.current.currentTime = t;
+                  }}
+                  className="frame-slider"
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
