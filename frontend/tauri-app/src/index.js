@@ -41,7 +41,7 @@ const Root = () => {
 
   return (
     <>
-      {!modeSelected && <StartupModal onSelect={handleModeSelect} />}
+      {!modeSelected && <StartupModal onStartupComplete={handleModeSelect} />}
       {modeSelected && <App />}
     </>
   )

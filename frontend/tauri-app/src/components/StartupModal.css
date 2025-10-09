@@ -45,7 +45,7 @@
   display: flex;
   justify-content: center;
   gap: 1rem;
-  margin-top: 1.5rem;
+  margin-top: 1.25rem;
 }
 
 .startup-button {
@@ -84,6 +84,15 @@
   }
 }
 
+@keyframes fadeInBackground {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .startup-modal-description {
   margin-top: 1rem;
   font-size: 0.9rem;
@@ -92,11 +101,72 @@
   transition: opacity 0.2s ease-in-out;
 }
 
-@keyframes fadeInBackground {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+.startup-modal-error {
+  margin-top: 1.25rem;
+  color: #ffaaaa;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+/* status & spinner row */
+.startup-status {
+  margin-top: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  flex-direction: column;
+  transition: all 0.3s ease;
+}
+
+.startup-status-text {
+  color: #ffffffcc;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+/* fade out animation when modal closes */
+.fade-out {
+  animation: fadeOutBackground 0.35s ease-in forwards;
+}
+
+.box-fade-out {
+  animation: fadeOutUp 0.35s ease-in forwards;
+}
+
+@keyframes fadeOutBackground {
+  from { opacity: 1; }
+  to { opacity: 0; pointer-events: none; }
+}
+
+@keyframes fadeOutUp {
+  from { transform: translateY(0); opacity: 1; }
+  to { transform: translateY(-8px); opacity: 0; }
+}
+
+/* ensure disabled button looks disabled */
+.startup-button[disabled],
+.startup-button[aria-disabled="true"] {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+
+/* Spinner animation */
+.startup-spinner {
+  width: 42px;
+  height: 42px;
+  border: 5px solid #ffffff33;
+  border-top: 5px solid #ffffff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-top: 2rem;
+}
+
+@keyframes spin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
