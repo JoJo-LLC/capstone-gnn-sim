@@ -80,37 +80,48 @@ const UploadInputs = () => {
   return (
     <div className="upload-inputs-container">
       <div className="upload-inputs-section">
-        <label htmlFor="d3plot-folder" className="thq-body-large">LS-DYNA d3plot Conversion</label>
+        <label htmlFor="d3plot-folder" className="thq-body-large">LSDyna d3plot to .NPZ Conversion</label>
 
         <div className="d3plot-folder-selector">
-          <input
-            type="text"
-            id="d3plot-folder"
-            value={dataPath}
-            onChange={(e) => setDataPath(e.target.value)}
-            disabled={isConverting}
-            placeholder="Enter d3plot folder name or use browse button"
-            className="thq-input"
-          />
-          <input
-            type="file"
-            id="d3plotFolderSelector"
-            style={{ display: 'none' }}
-            webkitdirectory=""
-            directory=""
-            multiple
-            onChange={handleD3plotFolderSelect}
-            disabled={isConverting}
-          />
-          <button
-            type="button"
-            className="browse-btn"
-            onClick={selectD3plotFolder}
-            disabled={isConverting}
-            title="Browse for d3plot folder"
-          >
-            📁 Browse
-          </button>
+          <div className="folder-controls">
+            <div className="selected-folder">
+              {dataPath ? (
+                <span className="folder-path">📁 {dataPath}</span>
+              ) : (
+                <span className="no-folder">No folder selected</span>
+              )}
+            </div>
+            <input
+              type="file"
+              id="d3plotFolderSelector"
+              style={{ display: 'none' }}
+              webkitdirectory=""
+              directory=""
+              multiple
+              onChange={handleD3plotFolderSelect}
+              disabled={isConverting}
+            />
+            <button
+              type="button"
+              className="browse-btn"
+              onClick={selectD3plotFolder}
+              disabled={isConverting}
+              title="Browse for d3plot folder"
+            >
+              📁 Select d3plot Folder
+            </button>
+            {dataPath && (
+              <button
+                type="button"
+                className="clear-btn"
+                onClick={() => setDataPath('')}
+                disabled={isConverting}
+                title="Clear selection"
+              >
+                ✕ Clear
+              </button>
+            )}
+          </div>
         </div>
 
         <button
@@ -129,7 +140,7 @@ const UploadInputs = () => {
         )}
 
         <div className="conversion-note">
-          💡 Browse selects d3plot folder - converted NPZ will be used for FGN inference
+          💡 Select d3plot folder containing simulation files - converted NPZ will be used for FGN inference
         </div>
       </div>
     </div>

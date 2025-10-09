@@ -6,7 +6,7 @@ const ViewModeSelector = () => {
 
   return (
     <div className="view-mode-selector-container">
-      <label className="thq-heading-3">Visualization Mode</label>
+      <label className="thq-heading-3">Visualisation Mode</label>
       <div className="view-mode-toggle-buttons">
         <button
           className={mode === 'single-frame' ? 'active' : ''}

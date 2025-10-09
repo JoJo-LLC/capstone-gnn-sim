@@ -10,7 +10,7 @@ const PreviewOutput = ({ previewUrl }) => {
           <img src={previewUrl} alt="Simulation Output" className="preview-output-image" />
         ) : (
           <p className="thq-body-small preview-output-placeholder">
-            No preview loaded. Run a simulation or upload an output.
+            No preview loaded. Run a simulation.
           </p>
         )}
       </div>
