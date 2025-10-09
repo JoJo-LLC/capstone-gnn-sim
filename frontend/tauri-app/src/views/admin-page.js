@@ -126,7 +126,9 @@ const AdminPage = () => {
                     />
                   </div>
                 ) : (
+                  <div className="gif-container">
                   <p>No GIF available for this simulation</p>
+                  </div>
                 )}
 
                 {/* Simulation Parameters */}
