@@ -12,6 +12,7 @@ const ResearcherTools = ({ mode, setMode, isInferenceRunning, setIsInferenceRunn
   const [logs, setLogs] = useState([])
   const [terminalStatus, setTerminalStatus] = useState({ message: 'System initialized...', type: 'info' })
   const [showHelp, setShowHelp] = useState(false)
+  const [inferenceProgress, setInferenceProgress] = useState({ percentage: 0, current: 0, total: 0 })
   const terminalRef = React.useRef(null)
 
   const addLogLine = (message, type = '') => {
@@ -22,6 +23,10 @@ const ResearcherTools = ({ mode, setMode, isInferenceRunning, setIsInferenceRunn
   const clearLogs = () => {
     setLogs([])
     addLogLine('Logs cleared', 'info')
+  }
+
+  const handleProgressUpdate = (percentage, current, total) => {
+    setInferenceProgress({ percentage, current, total })
   }
 
 
@@ -124,6 +129,7 @@ const ResearcherTools = ({ mode, setMode, isInferenceRunning, setIsInferenceRunn
               onLogMessage={addLogLine}
               onStatusChange={setTerminalStatus}
               onRunningStateChange={setIsInferenceRunning}
+              onProgressUpdate={handleProgressUpdate}
             />
           </div>
 
@@ -142,7 +148,11 @@ const ResearcherTools = ({ mode, setMode, isInferenceRunning, setIsInferenceRunn
           </div>
         </div>
         <div className="visualization-content">
-          <PreviewOutput previewUrl={previewUrl} />
+          <PreviewOutput
+            previewUrl={previewUrl}
+            isInferenceRunning={isInferenceRunning}
+            progress={inferenceProgress}
+          />
         </div>
       </div>
 

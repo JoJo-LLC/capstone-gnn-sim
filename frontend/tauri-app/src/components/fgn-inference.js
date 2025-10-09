@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import './fgn-inference.css'
 
-const FGNInference = ({ onSimulationComplete, onLogMessage, onStatusChange, onRunningStateChange }) => {
+const FGNInference = ({ onSimulationComplete, onLogMessage, onStatusChange, onRunningStateChange, onProgressUpdate }) => {
   const [nsteps, setNsteps] = useState(20)
   const [dataPath, setDataPath] = useState('0.4_6')
   const [modelPath, setModelPath] = useState('./model_4_inference/NS5e-4_1e-2_R14_L5N64_PosNsx10/')
@@ -9,6 +9,8 @@ const FGNInference = ({ onSimulationComplete, onLogMessage, onStatusChange, onRu
   const [detonationXY, setDetonationXY] = useState('0,0')
   const [isRunning, setIsRunning] = useState(false)
   const [status, setStatus] = useState({ message: '', type: '' })
+  const [currentStep, setCurrentStep] = useState(0)
+  const [totalSteps, setTotalSteps] = useState(0)
   const readerRef = useRef(null)
   const startTimeRef = useRef(null)
 
@@ -118,6 +120,14 @@ const FGNInference = ({ onSimulationComplete, onLogMessage, onStatusChange, onRu
     }
   }, [isRunning, onRunningStateChange])
 
+  // Notify parent component when progress changes
+  useEffect(() => {
+    if (onProgressUpdate && totalSteps > 0) {
+      const percentage = (currentStep / totalSteps) * 100
+      onProgressUpdate(percentage, currentStep, totalSteps)
+    }
+  }, [currentStep, totalSteps, onProgressUpdate])
+
 
   const bytesToGB = (b) => (b / (1024 ** 3))
 
@@ -136,6 +146,8 @@ const FGNInference = ({ onSimulationComplete, onLogMessage, onStatusChange, onRu
 
     // Reset UI
     setIsRunning(true)
+    setCurrentStep(0)
+    setTotalSteps(nsteps)
     startTimeRef.current = Date.now()
     updateStatus(`Starting FGN inference (${nsteps} steps)...`, 'running')
     addLogLine(`🚀 Starting inference with ${nsteps} steps on ${dataPath}`, 'case')
@@ -177,6 +189,14 @@ const FGNInference = ({ onSimulationComplete, onLogMessage, onStatusChange, onRu
             setIsRunning(false)
             return
           } else if (data) {
+            // Extract step progress from messages like "Step 5/20 completed"
+            const stepMatch = data.match(/Step (\d+)\/(\d+)/)
+            if (stepMatch) {
+              const step = parseInt(stepMatch[1], 10)
+              const total = parseInt(stepMatch[2], 10)
+              setCurrentStep(step)
+              setTotalSteps(total)
+            }
             addLogLine(data, /PROGRESS:/.test(data) ? 'progress' : '')
           }
         }
@@ -194,6 +214,8 @@ const FGNInference = ({ onSimulationComplete, onLogMessage, onStatusChange, onRu
       readerRef.current = null
     }
     setIsRunning(false)
+    setCurrentStep(0)
+    setTotalSteps(0)
     updateStatus('Inference stopped', 'stopped')
     addLogLine('Inference stopped by user', 'debug')
   }
