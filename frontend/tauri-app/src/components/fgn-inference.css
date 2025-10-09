@@ -2,26 +2,29 @@
   font-family: monospace;
   background-color: transparent !important;
   color: #ffffff;
-  padding: 20px;
-  margin: 20px 0;
+  padding: 0;
+  margin: 0;
   max-width: 100%;
   border: none !important;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
 }
 
 .fgn-inference-title {
-  color: #ffffff;
-  margin-bottom: 20px;
-  font-size: 1.5rem;
-  font-weight: bold;
-  text-align: center;
+  display: none; /* Hide title since it's now in section header */
 }
 
 .fgn-inference-controls {
   display: flex;
-  flex-wrap: wrap;
-  gap: 15px;
-  margin-bottom: 20px;
-  align-items: flex-end;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  padding-right: 4px; /* Space for scrollbar */
 }
 
 .fgn-control-group {
@@ -38,17 +41,26 @@
 }
 
 .fgn-control-group input {
-  padding: 8px;
+  padding: 6px 8px;
   border: 1px solid #444;
   border-radius: 4px;
   background-color: #2d2d2d;
   color: #ffffff;
   font-family: monospace;
-  min-width: 120px;
+  font-size: 0.85rem;
+  box-sizing: border-box;
 }
 
 .fgn-control-group input[type="number"] {
-  width: 80px;
+  width: 50%;
+  max-width: 50%;
+}
+
+/* Specific inputs that should stay 50% width */
+input#nsteps,
+input#detonationXY {
+  width: 50% !important;
+  max-width: 50% !important;
 }
 
 .fgn-control-group input:disabled {
@@ -59,22 +71,25 @@
 .fgn-folder-selector {
   display: flex;
   gap: 8px;
-  align-items: center;
+  align-items: stretch;
 }
 
 .fgn-folder-selector input {
   flex: 1;
+  min-width: 0;
 }
 
 .fgn-folder-btn {
   background-color: #2196F3;
   color: white;
   border: none;
-  padding: 8px 12px;
+  padding: 6px 10px;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 0.8rem;
   transition: background-color 0.3s ease;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .fgn-folder-btn:hover:not(:disabled) {
@@ -96,19 +111,24 @@
 
 .fgn-control-buttons {
   display: flex;
-  gap: 10px;
+  gap: 8px;
+  flex-shrink: 0; /* Prevent buttons from shrinking */
+  margin-top: 12px;
 }
 
 .fgn-start-btn, .fgn-stop-btn, .fgn-clear-btn {
   background-color: #4CAF50;
   color: white;
   border: none;
-  padding: 10px 20px;
-  font-size: 16px;
-  border-radius: 5px;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  border-radius: 4px;
   cursor: pointer;
   font-family: inherit;
   transition: background-color 0.3s ease;
+  flex: 1;
+  min-width: 0;
+  font-weight: 500;
 }
 
 .fgn-stop-btn {

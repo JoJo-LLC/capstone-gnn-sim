@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import './fgn-inference.css'
 
-const FGNInference = ({ onSimulationComplete }) => {
+const FGNInference = ({ onSimulationComplete, onLogMessage, onStatusChange }) => {
   const [nsteps, setNsteps] = useState(20)
   const [dataPath, setDataPath] = useState('0.4_6')
   const [modelPath, setModelPath] = useState('./model_4_inference/NS5e-4_1e-2_R14_L5N64_PosNsx10/')
@@ -9,10 +9,8 @@ const FGNInference = ({ onSimulationComplete }) => {
   const [detonationXY, setDetonationXY] = useState('0,0')
   const [isRunning, setIsRunning] = useState(false)
   const [status, setStatus] = useState({ message: '', type: '' })
-  const [logs, setLogs] = useState([])
   const readerRef = useRef(null)
   const startTimeRef = useRef(null)
-  const logContainerRef = useRef(null)
 
   const [resourceUsage, setResourceUsage] = useState({
     cpu_usage: 0,
@@ -22,11 +20,17 @@ const FGNInference = ({ onSimulationComplete }) => {
   })
 
   const addLogLine = (message, type = '') => {
-    const timestamp = new Date().toLocaleTimeString()
-    setLogs(prev => [...prev, { message, type, timestamp }])
+    if (onLogMessage) {
+      onLogMessage(message, type)
+    }
   }
 
-  const updateStatus = (message, type) => setStatus({ message, type })
+  const updateStatus = (message, type) => {
+    setStatus({ message, type })
+    if (onStatusChange) {
+      onStatusChange({ message, type })
+    }
+  }
 
   const selectFolder = () => document.getElementById('folderSelector').click()
 
@@ -107,11 +111,6 @@ const FGNInference = ({ onSimulationComplete }) => {
     return () => clearInterval(interval)
   }, [isRunning])
 
-  useEffect(() => {
-    if (logContainerRef.current) {
-      logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight
-    }
-  }, [logs])
 
   const bytesToGB = (b) => (b / (1024 ** 3))
 
@@ -129,7 +128,6 @@ const FGNInference = ({ onSimulationComplete }) => {
     }
 
     // Reset UI
-    setLogs([])
     setIsRunning(true)
     startTimeRef.current = Date.now()
     updateStatus(`Starting FGN inference (${nsteps} steps)...`, 'running')
@@ -280,7 +278,7 @@ const FGNInference = ({ onSimulationComplete }) => {
             </button>
           </div>
            <div className="fgn-browse-note">
-            💡 Browse only selects folder path - no files are uploaded
+            💡 Browse only selects folder path - no files are uploaded 
           </div>
         </div>
 
@@ -356,7 +354,7 @@ const FGNInference = ({ onSimulationComplete }) => {
 
         <div className="fgn-control-buttons">
           <button className="fgn-start-btn" onClick={startInference} disabled={isRunning}>
-            Start Inference
+            Start
           </button>
           <button className="fgn-stop-btn" onClick={stopInference} disabled={!isRunning}>
             Stop
@@ -364,19 +362,7 @@ const FGNInference = ({ onSimulationComplete }) => {
         </div>
       </div>
 
-      {status.message && (
-        <div className={`fgn-status fgn-status-${status.type}`}>
-          {status.message}
-        </div>
-      )}
 
-      <div className="fgn-progress-log" ref={logContainerRef}>
-        {logs.map((log, index) => (
-          <div key={index} className={`fgn-log-line ${log.type}`}>
-            [{log.timestamp}] {log.message}
-          </div>
-        ))}
-      </div>
     </div>
   )
 }
