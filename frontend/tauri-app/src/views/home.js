@@ -25,7 +25,7 @@ const Home = () => {
       </Helmet>
 
       {/* NAVBAR */}
-      <section className="bg-brand--white fullwidth">
+      <section className="fullwidth">
         <Navbar8
           link1="Researcher"
           link2="Visitor"
@@ -38,7 +38,7 @@ const Home = () => {
       </section>
 
       {/* HERO */}
-      <section className="bg-brand--white fullwidth">
+      <section className="fullwidth">
         <Hero17
           action1="Explore as Researcher"
           action2="Explore as Visitor"
@@ -63,7 +63,7 @@ const Home = () => {
       </section>
 
       {/* FEATURES 1 */}
-      <section className="bg-brand--white fullwidth">
+      <section className="fullwidth">
         <Features24
           feature1Title="Upload .npz Inputs"
           feature2Title="CPU/GPU Toggle"
@@ -75,7 +75,7 @@ const Home = () => {
       </section>
 
       {/* FEATURES 2 */}
-      <section className="bg-brand--white fullwidth">
+      <section className="fullwidth">
         <Features25
           feature1Title="Rapid Iteration"
           feature2Title="Local-First Desktop App"
@@ -87,7 +87,7 @@ const Home = () => {
       </section>
 
       {/* CTA */}
-      <section className="bg-brand--white fullwidth">
+      <section className="fullwidth">
         <CTA26
           action1="Get Started"
           content1="Choose your role to explore example simulations or run your own."
@@ -96,7 +96,7 @@ const Home = () => {
       </section>
 
       {/* CONTACT / REPOSITORIES */}
-      <section className="bg-brand--white fullwidth">
+      <section className="fullwidth">
         <Contact10
           content1="Repositories and docs for the Capstone project are available to contributors."
           heading1="Project Repositories"
@@ -108,7 +108,7 @@ const Home = () => {
       </section>
 
       {/* FOOTER */}
-      <section className="bg-brand--white fullwidth">
+      <section className="fullwidth">
         <Footer4
           link1="About"
           link2="Contact"
