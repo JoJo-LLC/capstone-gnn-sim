@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import './fgn-inference.css'
 
-const FGNInference = ({ onSimulationComplete, onLogMessage, onStatusChange, onRunningStateChange }) => {
+const FGNInference = ({ onSimulationComplete, onLogMessage, onStatusChange, onRunningStateChange, onProgressUpdate }) => {
   const [nsteps, setNsteps] = useState(20)
   const [dataPath, setDataPath] = useState('0.4_6')
   const [modelPath, setModelPath] = useState('./model_4_inference/NS5e-4_1e-2_R14_L5N64_PosNsx10/')
@@ -9,6 +9,8 @@ const FGNInference = ({ onSimulationComplete, onLogMessage, onStatusChange, onRu
   const [detonationXY, setDetonationXY] = useState('0,0')
   const [isRunning, setIsRunning] = useState(false)
   const [status, setStatus] = useState({ message: '', type: '' })
+  const [currentStep, setCurrentStep] = useState(0)
+  const [totalSteps, setTotalSteps] = useState(0)
   const readerRef = useRef(null)
   const startTimeRef = useRef(null)
 
@@ -118,6 +120,28 @@ const FGNInference = ({ onSimulationComplete, onLogMessage, onStatusChange, onRu
     }
   }, [isRunning, onRunningStateChange])
 
+  // Notify parent component when progress changes
+  // Progress breakdown: Initialization (5%) + Rollout steps (85%) + Post-processing (10%)
+  useEffect(() => {
+    if (onProgressUpdate && totalSteps > 0) {
+      let percentage = 0
+
+      if (currentStep === 0) {
+        // Initialization phase
+        percentage = 5
+      } else if (currentStep > 0 && currentStep < totalSteps) {
+        // Rollout phase: 5% + (step progress × 85%)
+        const rolloutProgress = (currentStep / totalSteps) * 85
+        percentage = 5 + rolloutProgress
+      } else if (currentStep === totalSteps) {
+        // Post-processing phase
+        percentage = 90
+      }
+
+      onProgressUpdate(percentage, currentStep, totalSteps)
+    }
+  }, [currentStep, totalSteps, onProgressUpdate])
+
 
   const bytesToGB = (b) => (b / (1024 ** 3))
 
@@ -136,6 +160,8 @@ const FGNInference = ({ onSimulationComplete, onLogMessage, onStatusChange, onRu
 
     // Reset UI
     setIsRunning(true)
+    setCurrentStep(0)
+    setTotalSteps(nsteps)
     startTimeRef.current = Date.now()
     updateStatus(`Starting FGN inference (${nsteps} steps)...`, 'running')
     addLogLine(`🚀 Starting inference with ${nsteps} steps on ${dataPath}`, 'case')
@@ -164,6 +190,10 @@ const FGNInference = ({ onSimulationComplete, onLogMessage, onStatusChange, onRu
           if (!line.startsWith('data: ')) continue
           const data = line.substring(6).trim()
           if (data === 'COMPLETE') {
+            // Set to 100% before completing
+            if (onProgressUpdate) {
+              onProgressUpdate(100, totalSteps, totalSteps)
+            }
             const elapsed = ((Date.now() - startTimeRef.current) / 1000).toFixed(1)
             updateStatus(`✅ Inference completed in ${elapsed}s`, 'complete')
             addLogLine('🎉 Inference completed successfully!', 'complete')
@@ -177,6 +207,23 @@ const FGNInference = ({ onSimulationComplete, onLogMessage, onStatusChange, onRu
             setIsRunning(false)
             return
           } else if (data) {
+            // Extract step progress from messages like "Step 5/20 completed"
+            const stepMatch = data.match(/Step (\d+)\/(\d+)/)
+            if (stepMatch) {
+              const step = parseInt(stepMatch[1], 10)
+              const total = parseInt(stepMatch[2], 10)
+              setCurrentStep(step)
+              setTotalSteps(total)
+            }
+
+            // Detect post-processing phase
+            if (data.includes('Post-processing') || data.includes('Generating visualization')) {
+              // Set to post-processing state (will show 90%+)
+              if (totalSteps > 0) {
+                setCurrentStep(totalSteps)
+              }
+            }
+
             addLogLine(data, /PROGRESS:/.test(data) ? 'progress' : '')
           }
         }
@@ -194,6 +241,8 @@ const FGNInference = ({ onSimulationComplete, onLogMessage, onStatusChange, onRu
       readerRef.current = null
     }
     setIsRunning(false)
+    setCurrentStep(0)
+    setTotalSteps(0)
     updateStatus('Inference stopped', 'stopped')
     addLogLine('Inference stopped by user', 'debug')
   }
