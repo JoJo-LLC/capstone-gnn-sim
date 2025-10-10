@@ -285,7 +285,7 @@ const FGNInference = ({ onSimulationComplete, onLogMessage, onStatusChange, onRu
             value={nsteps}
             onChange={(e) => setNsteps(e.target.value)}
             min="10"
-            max="100"
+            max="1000"
             disabled={isRunning}
           />
         </div>

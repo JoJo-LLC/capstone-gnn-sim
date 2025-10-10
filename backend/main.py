@@ -893,8 +893,8 @@ def validate_data_path(data_path: str) -> str:
 
 def validate_nsteps(nsteps: int) -> int:
     """Validate nsteps parameter"""
-    if not (10 <= nsteps <= 100):
-        raise HTTPException(status_code=400, detail="Invalid nsteps: must be between 10 and 100")
+    if not (10 <= nsteps <= 1000):
+        raise HTTPException(status_code=400, detail="Invalid nsteps: must be between 10 and 1000")
     return nsteps
 
 def validate_detonation_xy(detonation_xy: str) -> str:
