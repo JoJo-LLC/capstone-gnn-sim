@@ -7,6 +7,7 @@ const FGNInference = ({ onSimulationComplete, onLogMessage, onStatusChange, onRu
   const [modelPath, setModelPath] = useState('./model_4_inference/NS5e-4_1e-2_R14_L5N64_PosNsx10/')
   const [modelFile, setModelFile] = useState('model-066000.pt')
   const [detonationXY, setDetonationXY] = useState('0,0')
+  const [unlimitedMode, setUnlimitedMode] = useState(false)
   const [isRunning, setIsRunning] = useState(false)
   const [status, setStatus] = useState({ message: '', type: '' })
   const [currentStep, setCurrentStep] = useState(0)
@@ -167,9 +168,12 @@ const FGNInference = ({ onSimulationComplete, onLogMessage, onStatusChange, onRu
     addLogLine(`🚀 Starting inference with ${nsteps} steps on ${dataPath}`, 'case')
     addLogLine(`🧠 Using model: ${modelPath}${modelFile}`, 'debug')
     addLogLine(`💥 Detonation coordinates: ${detonationXY}`, 'debug')
+    if (unlimitedMode) {
+      addLogLine(`⚠️ Unlimited Mode: No timeout, no step limit`, 'debug')
+    }
 
     try {
-      const url = `http://localhost:8000/run-npz-inference-progress/?data_path=${dataPath}&nsteps=${nsteps}&detonation_xy=${encodeURIComponent(detonationXY)}&expanded_search=false&model_path=${encodeURIComponent(modelPath)}&model_file=${encodeURIComponent(modelFile)}`
+      const url = `http://localhost:8000/run-npz-inference-progress/?data_path=${dataPath}&nsteps=${nsteps}&detonation_xy=${encodeURIComponent(detonationXY)}&expanded_search=false&model_path=${encodeURIComponent(modelPath)}&model_file=${encodeURIComponent(modelFile)}&unlimited_mode=${unlimitedMode}`
 
       const response = await fetch(url, {
         method: 'POST',
@@ -275,7 +279,19 @@ const FGNInference = ({ onSimulationComplete, onLogMessage, onStatusChange, onRu
         <div>MEM: {memUsedGB.toFixed(1)}/{memTotalGB.toFixed(1)} GB ({memPct.toFixed(1)}%)</div>
       </div>
 
-      <h3 className="fgn-inference-title">FGN Inference</h3>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+        <h3 className="fgn-inference-title" style={{ margin: 0 }}>FGN Inference</h3>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#fff', fontSize: '14px', cursor: 'pointer' }}>
+          <input
+            type="checkbox"
+            checked={unlimitedMode}
+            onChange={(e) => setUnlimitedMode(e.target.checked)}
+            disabled={isRunning}
+            style={{ cursor: 'pointer', width: '16px', height: '16px' }}
+          />
+          <span>Unlimited Mode (no timeout, unlimited steps)</span>
+        </label>
+      </div>
 
       <div className="fgn-inference-controls">
         <div className="fgn-control-group">
@@ -286,7 +302,7 @@ const FGNInference = ({ onSimulationComplete, onLogMessage, onStatusChange, onRu
             value={nsteps}
             onChange={(e) => setNsteps(e.target.value)}
             min="10"
-            max="100"
+            max={unlimitedMode ? undefined : "1000"}
             disabled={isRunning}
           />
         </div>

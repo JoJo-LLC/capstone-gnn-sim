@@ -436,11 +436,11 @@ async def run_fgn_inference(nsteps: int, data_path: str, detonation_xy: str = "0
             
             try:
                 conversion_result = subprocess.run(
-                    conversion_cmd, 
-                    capture_output=True, 
-                    text=True, 
+                    conversion_cmd,
+                    capture_output=True,
+                    text=True,
                     cwd=gns_path,
-                    timeout=300  # 5 minute timeout
+                    timeout=21600  # 6 hour timeout
                 )
                 if conversion_result.returncode != 0:
                     raise Exception(f"d3plot conversion failed: {conversion_result.stderr}")
@@ -479,7 +479,7 @@ async def run_fgn_inference(nsteps: int, data_path: str, detonation_xy: str = "0
                 capture_output=True,
                 text=True,
                 cwd=gns_path,
-                timeout=600  # 10 minute timeout for inference
+                timeout=21600  # 6 hour timeout for inference
             )
             
             rollout_time = time.time() - rollout_start_time
@@ -648,11 +648,11 @@ async def convert_d3plot_to_npz(data_path: str):
         
         try:
             conversion_result = subprocess.run(
-                conversion_cmd, 
-                capture_output=True, 
-                text=True, 
+                conversion_cmd,
+                capture_output=True,
+                text=True,
                 cwd=gns_path,
-                timeout=300  # 5 minute timeout
+                timeout=21600  # 6 hour timeout
             )
             
             conversion_time = time.time() - conversion_start_time
@@ -699,7 +699,7 @@ async def convert_d3plot_to_npz(data_path: str):
             }
             
         except subprocess.TimeoutExpired:
-            raise HTTPException(status_code=408, detail="d3plot conversion timed out (5 minutes)")
+            raise HTTPException(status_code=408, detail="d3plot conversion timed out (6 hours)")
         except Exception as e:
             conversion_time = time.time() - conversion_start_time
             return {
@@ -764,7 +764,7 @@ async def run_npz_inference(data_path: str, nsteps: int, detonation_xy: str = "0
                 capture_output=True,
                 text=True,
                 cwd=gns_path,
-                timeout=600  # 10 minute timeout for inference
+                timeout=21600  # 6 hour timeout for inference
             )
             
             inference_time = time.time() - inference_start_time
@@ -827,7 +827,7 @@ async def run_npz_inference(data_path: str, nsteps: int, detonation_xy: str = "0
             }
             
         except subprocess.TimeoutExpired:
-            raise HTTPException(status_code=408, detail="FGN inference timed out (10 minutes)")
+            raise HTTPException(status_code=408, detail="FGN inference timed out (6 hours)")
         except Exception as e:
             inference_time = time.time() - inference_start_time
             return {
@@ -891,10 +891,17 @@ def validate_data_path(data_path: str) -> str:
     # Return just the folder name - endpoints will construct full paths as needed
     return data_path
 
-def validate_nsteps(nsteps: int) -> int:
-    """Validate nsteps parameter"""
-    if not (10 <= nsteps <= 100):
-        raise HTTPException(status_code=400, detail="Invalid nsteps: must be between 10 and 100")
+def validate_nsteps(nsteps: int, unlimited_mode: bool = False) -> int:
+    """Validate nsteps parameter - skip validation if unlimited_mode is True"""
+    if unlimited_mode:
+        # In unlimited mode, only enforce minimum of 10 steps
+        if nsteps < 10:
+            raise HTTPException(status_code=400, detail="Invalid nsteps: must be at least 10")
+        return nsteps
+
+    # Normal mode: enforce 10-1000 range
+    if not (10 <= nsteps <= 1000):
+        raise HTTPException(status_code=400, detail="Invalid nsteps: must be between 10 and 1000")
     return nsteps
 
 def validate_detonation_xy(detonation_xy: str) -> str:
@@ -914,13 +921,13 @@ def sanitize_output(line: str) -> str:
 
 # Joe's Progress-enabled FGN inference endpoint with real-time step tracking and security
 @app.post("/run-npz-inference-progress/")
-async def run_npz_inference_with_progress(data_path: str, nsteps: int, detonation_xy: str = "0,0", expanded_search: bool = False, model_path: str = "./model_4_inference/NS5e-4_1e-2_R14_L5N64_PosNsx10/", model_file: str = "model-066000.pt"):
+async def run_npz_inference_with_progress(data_path: str, nsteps: int, detonation_xy: str = "0,0", expanded_search: bool = False, model_path: str = "./model_4_inference/NS5e-4_1e-2_R14_L5N64_PosNsx10/", model_file: str = "model-066000.pt", unlimited_mode: bool = False):
     """Run FGN inference on existing NPZ file with real-time progress streaming with security"""
     global current_inference_count
-    
+
     # Validate all input parameters
     data_path = validate_data_path(data_path)
-    nsteps = validate_nsteps(nsteps)
+    nsteps = validate_nsteps(nsteps, unlimited_mode=unlimited_mode)
     detonation_xy = validate_detonation_xy(detonation_xy)
     
 
@@ -1103,15 +1110,20 @@ async def run_npz_inference_with_progress(data_path: str, nsteps: int, detonatio
                             if len(line) < 200:  # Limit debug output length
                                 yield f"data: [DEBUG] {line}\n\n"
                 
-                # Wait for process to complete with timeout
+                # Wait for process to complete with timeout (or unlimited)
                 try:
-                    return_code = await asyncio.wait_for(process.wait(), timeout=600)  # 10 min timeout
+                    if unlimited_mode:
+                        # Unlimited mode: wait indefinitely
+                        return_code = await process.wait()
+                    else:
+                        # Normal mode: 6 hour timeout
+                        return_code = await asyncio.wait_for(process.wait(), timeout=21600)
                 except asyncio.TimeoutError:
                     process.terminate()
                     await asyncio.sleep(1)
                     if process.returncode is None:
                         process.kill()
-                    yield f"data: ✗ Inference timed out after 10 minutes\n\n"
+                    yield f"data: ✗ Inference timed out after 6 hours\n\n"
                     yield f"data: ERROR\n\n"
                     return
                 total_time = time.time() - start_time
