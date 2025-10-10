@@ -14,7 +14,7 @@ const ResearcherTools = ({ mode, setMode, isInferenceRunning, setIsInferenceRunn
   const [showHelp, setShowHelp] = useState(false)
   const [inferenceProgress, setInferenceProgress] = useState({ percentage: 0, current: 0, total: 0 })
   const terminalRef = React.useRef(null)
-
+  const [viewMode, setViewMode] = useState('single-frame')
   const addLogLine = (message, type = '') => {
     const timestamp = new Date().toLocaleTimeString()
     setLogs(prev => [...prev, { message, type, timestamp }])
@@ -141,7 +141,7 @@ const ResearcherTools = ({ mode, setMode, isInferenceRunning, setIsInferenceRunn
         <div className="visualization-header">
           <div className="visualization-title-controls">
             <h3>Visualisation Output</h3>
-            <ViewModeSelector />
+            <ViewModeSelector value={viewMode} onChange={setViewMode} />
           </div>
           <div className="visualization-export">
             <ExportButtons />
@@ -149,10 +149,12 @@ const ResearcherTools = ({ mode, setMode, isInferenceRunning, setIsInferenceRunn
         </div>
         <div className="visualization-content">
           <PreviewOutput
-            previewUrl={previewUrl}
-            isInferenceRunning={isInferenceRunning}
-            progress={inferenceProgress}
-          />
+  gifUrl={previewUrl?.gifUrl}
+   mp4Url={previewUrl?.mp4Url}
+   viewMode={viewMode}
+   isInferenceRunning={isInferenceRunning}
+   progress={inferenceProgress}
+ />
         </div>
       </div>
 

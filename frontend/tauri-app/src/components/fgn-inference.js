@@ -199,7 +199,8 @@ const FGNInference = ({ onSimulationComplete, onLogMessage, onStatusChange, onRu
             addLogLine('🎉 Inference completed successfully!', 'complete')
             setIsRunning(false)
             const gifUrl = `http://localhost:8000/gallery/${dataPath}/gif?cacheBust=${Date.now()}`
-            if (onSimulationComplete) onSimulationComplete(gifUrl)
+           const mp4Url = `http://localhost:8000/gallery/${encodeURIComponent(dataPath)}/mp4?cacheBust=${Date.now()}`
+            if (onSimulationComplete) onSimulationComplete({ gifUrl, mp4Url })
             return
           } else if (data === 'ERROR') {
             updateStatus('❌ Inference failed', 'error')
