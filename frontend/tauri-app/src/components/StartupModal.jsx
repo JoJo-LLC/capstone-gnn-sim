@@ -55,6 +55,7 @@ const StartupModal = ({ onStartupComplete }) => {
     <div className={`startup-modal-overlay${closing ? " closing" : ""}`}>
       <div className={`startup-modal-box${closing ? " closing" : ""}`}>
         <h2 className="startup-modal-title">Simulation Mode</h2>
+
         <p className="startup-modal-subtitle startup-description">
           {descriptions[hoveredMode]}
         </p>
@@ -80,12 +81,14 @@ const StartupModal = ({ onStartupComplete }) => {
           </button>
         </div>
 
-        <div className="startup-status">
-          {loading ? (
-            <div className="startup-spinner" aria-hidden="true" />
-          ) : (
-            backendReady && <div className="startup-status-text">{statusMessage}</div>
-          )}
+        <div className="startup-modal-status-wrapper">
+          <div className="startup-status">
+            {loading ? (
+              <div className="startup-spinner" aria-hidden="true" />
+            ) : (
+              backendReady && <div className="startup-status-text">{statusMessage}</div>
+            )}
+          </div>
         </div>
 
         {error && (
