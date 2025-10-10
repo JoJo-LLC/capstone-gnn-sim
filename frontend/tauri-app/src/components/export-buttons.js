@@ -40,7 +40,6 @@ const ExportButtons = () => {
 
   return (
     <div className="export-buttons-container">
-      <label className="thq-heading-3">Export Options</label>
       <div className="export-buttons-group">
         <button
           className="thq-button-filled export-button"

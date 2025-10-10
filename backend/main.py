@@ -855,10 +855,40 @@ async def run_npz_inference(data_path: str, nsteps: int, detonation_xy: str = "0
 
 # Security validation functions
 def validate_data_path(data_path: str) -> str:
-    """Validate and sanitize data_path parameter"""
-    # Allow only alphanumeric and specific characters (dots, underscores)
+    """Validate and sanitize data_path parameter - returns folder name only"""
+    # Allow relative folder names (e.g., "0.4_6", "my_data.folder")
+    # Users should place their data folders in backend/ directory before running
+
+    # Block absolute paths - they won't work in Docker container
+    if os.path.isabs(data_path):
+        raise HTTPException(
+            status_code=400,
+            detail="Absolute paths not supported. Please place your data folder in the 'backend/' directory and provide just the folder name (e.g., '0.4_6')"
+        )
+
+    # Block parent directory traversal for security
+    if '..' in data_path or '/' in data_path or '\\' in data_path:
+        raise HTTPException(
+            status_code=400,
+            detail="Path traversal not allowed. Provide only the folder name within backend/ directory"
+        )
+
+    # Validate folder name format
     if not re.match(r'^[a-zA-Z0-9._-]+$', data_path) or len(data_path) > 50:
-        raise HTTPException(status_code=400, detail="Invalid data_path: must be alphanumeric with dots/underscores, max 50 chars")
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid data_path: must be alphanumeric with dots/underscores/hyphens, max 50 chars"
+        )
+
+    # Check if folder exists and provide helpful error
+    full_path = os.path.join('/app/src', data_path)
+    if not os.path.exists(full_path):
+        raise HTTPException(
+            status_code=404,
+            detail=f"Data folder '{data_path}' not found. Please ensure the folder exists in your 'backend/' directory."
+        )
+
+    # Return just the folder name - endpoints will construct full paths as needed
     return data_path
 
 def validate_nsteps(nsteps: int) -> int:
@@ -1066,7 +1096,7 @@ async def run_npz_inference_with_progress(data_path: str, nsteps: int, detonatio
                             yield f"data: {line}\n\n"
                         elif "CASE_COMPLETE:" in line:
                             yield f"data: {line}\n\n"
-                        elif "INITIALIZATION:" in line:
+                        elif "INITIALISATION:" in line:
                             yield f"data: {line}\n\n"
                         else:
                             # Send other output as debug info (limited)

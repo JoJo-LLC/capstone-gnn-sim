@@ -1,9 +1,44 @@
-.researcher-page-container {
+.researcher-page {
   width: 100%;
   display: flex;
   min-height: 100vh;
-  align-items: center;
   flex-direction: column;
+  background: #1a1a1a;
+}
+
+.researcher-main-container {
+  flex: 1;
+  width: 100%;
+  height: calc(100vh - 70px); /* Account for navbar height */
+  display: grid;
+  grid-template-columns: 20% 1fr; /* Narrower sidebar: 20% of width */
+  grid-template-rows: 65% 35%; /* Shorter visualization (45%), taller logs (55%) */
+  grid-template-areas:
+    "sidebar visualization"
+    "sidebar logs";
+  gap: 1px;
+  background: #2a2a2a;
+  overflow: hidden; /* Prevent scrolling */
+}
+
+/* Responsive breakpoints for different screen sizes */
+@media (max-width: 1400px) {
+  .researcher-main-container {
+    grid-template-columns: 25% 1fr; /* Wider sidebar on smaller screens */
+  }
+}
+
+@media (max-width: 1200px) {
+  .researcher-main-container {
+    grid-template-columns: 28% 1fr; /* Even wider sidebar on smaller screens */
+  }
+}
+
+@media (max-width: 1000px) {
+  .researcher-main-container {
+    grid-template-columns: 30% 1fr; /* Maximum sidebar width */
+    grid-template-rows: 40% 60%; /* More space for logs on smaller screens */
+  }
 }
  
 .researcher-page-text10 {

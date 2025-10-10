@@ -1,14 +1,35 @@
 .view-mode-selector-container {
   display: flex;
   flex-direction: column;
-  gap: var(--dl-layout-space-unit);
+  gap: 8px;
   width: 100%;
+}
+
+/* Compact header version */
+.visualization-title-controls .view-mode-selector-container {
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  width: auto;
+}
+
+.visualization-title-controls .view-mode-selector-container label {
+  color: #ccc;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin: 0;
+  white-space: nowrap;
 }
 
 .view-mode-toggle-buttons {
   display: flex;
   justify-content: center;
   gap: 20px;
+}
+
+/* Compact header version */
+.visualization-title-controls .view-mode-toggle-buttons {
+  gap: 8px;
 }
 
 .view-mode-toggle-buttons button {
@@ -22,6 +43,15 @@
   cursor: pointer;
   transition: transform 0.2s ease, background 0.3s ease;
   box-shadow: 0 4px 12px rgba(128, 90, 213, 0.3);
+}
+
+/* Compact header version buttons */
+.visualization-title-controls .view-mode-toggle-buttons button {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(128, 90, 213, 0.2);
 }
 
 .view-mode-toggle-buttons button:hover {

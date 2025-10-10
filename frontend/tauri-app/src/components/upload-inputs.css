@@ -1,35 +1,83 @@
 .upload-inputs-container {
   display: flex;
   flex-direction: column;
-  gap: var(--dl-layout-space-oneandhalfunits);
+  gap: 12px;
   width: 100%;
+  color: #ffffff;
 }
 
 .upload-inputs-section {
   display: flex;
   flex-direction: column;
-  gap: var(--dl-layout-space-halfunit);
+  gap: 8px;
+}
+
+.upload-inputs-section label {
+  color: #ffffff !important;
+  font-weight: 500;
 }
 
 .d3plot-folder-selector {
   display: flex;
-  gap: 10px;
-  align-items: center;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.d3plot-folder-selector input[type="text"] {
+.selected-folder {
+  padding: 6px 8px;
+  background-color: #2d2d2d;
+  border: 1px solid #444;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
   flex: 1;
+  min-width: 0;
+  font-size: 0.85rem;
+}
+
+.folder-path {
+  color: #4CAF50;
+  font-weight: 500;
+}
+
+.no-folder {
+  color: #999;
+  font-style: italic;
+}
+
+.folder-controls {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+  width: 100%;
 }
 
 .browse-btn {
   background-color: #2196F3;
   color: white;
   border: none;
-  padding: 8px 16px;
+  padding: 6px 10px;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 0.85rem;
+  font-weight: 500;
   transition: background-color 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.clear-btn {
+  background-color: #666;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .browse-btn:hover:not(:disabled) {
@@ -41,17 +89,28 @@
   cursor: not-allowed;
 }
 
+.clear-btn:hover:not(:disabled) {
+  background-color: #777;
+}
+
+.clear-btn:disabled {
+  background-color: #555;
+  cursor: not-allowed;
+}
+
 .convert-btn {
   background-color: #4CAF50;
   color: white;
   border: none;
-  padding: 12px 24px;
+  padding: 6px 12px;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 16px;
-  font-weight: bold;
+  font-size: 0.85rem;
+  font-weight: 500;
   margin-top: 10px;
   transition: all 0.2s;
+  width: fit-content;
+  align-self: flex-start;
 }
 
 .convert-btn:hover:not(:disabled) {
@@ -84,26 +143,26 @@
 }
 
 .status-message.loading {
-  background-color: #E3F2FD;
-  color: #1976D2;
+  background-color: rgba(33, 150, 243, 0.1);
+  color: #64b5f6;
   border-left: 4px solid #2196F3;
 }
 
 .status-message.success {
-  background-color: #E8F5E8;
-  color: #2E7D32;
+  background-color: rgba(76, 175, 80, 0.1);
+  color: #81c784;
   border-left: 4px solid #4CAF50;
 }
 
 .status-message.info {
-  background-color: #FFF3E0;
-  color: #F57C00;
+  background-color: rgba(255, 152, 0, 0.1);
+  color: #ffb74d;
   border-left: 4px solid #FF9800;
 }
 
 .status-message.error {
-  background-color: #FFEBEE;
-  color: #C62828;
+  background-color: rgba(244, 67, 54, 0.1);
+  color: #e57373;
   border-left: 4px solid #F44336;
 }
 

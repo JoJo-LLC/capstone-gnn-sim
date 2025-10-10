@@ -1,14 +1,70 @@
-import React, { Fragment, useState } from 'react'
+import React, { Fragment, useState, useEffect } from 'react'
 import { Helmet } from 'react-helmet'
+import { useNavigate, useLocation } from 'react-router-dom'
 
 import Navbar8 from '../components/navbar8'
-import Footer4 from '../components/footer4'
 import ResearcherTools from '../components/researcher-tools'
 
 import './researcher-page.css'
 
 const ResearcherPage = (props) => {
-  const [mode, setMode] = useState('cpu');
+  const [mode, setMode] = useState('cpu')
+  const [isInferenceRunning, setIsInferenceRunning] = useState(false)
+  const navigate = useNavigate()
+  const location = useLocation()
+
+  // Block navigation when inference is running
+  useEffect(() => {
+    const handleNavigation = (e) => {
+      if (isInferenceRunning) {
+        const confirmLeave = window.confirm(
+          '⚠️ FGN Inference is running. Leaving this page will stop the process.\n\nAre you sure you want to leave?'
+        )
+        if (!confirmLeave) {
+          e.preventDefault()
+          // Stay on current page
+          window.history.pushState(null, '', location.pathname)
+        }
+      }
+    }
+
+    // Intercept all link clicks when inference is running
+    const handleLinkClick = (e) => {
+      if (isInferenceRunning) {
+        // Check if clicked element or its parent is a link
+        const link = e.target.closest('a')
+        if (link && link.getAttribute('href')) {
+          const href = link.getAttribute('href')
+          // Only intercept if navigating away from current page
+          if (href !== location.pathname) {
+            const confirmLeave = window.confirm(
+              '⚠️ FGN Inference is running. Leaving this page will stop the process.\n\nAre you sure you want to leave?'
+            )
+            if (!confirmLeave) {
+              e.preventDefault()
+              e.stopPropagation()
+            }
+          }
+        }
+      }
+    }
+
+    // Listen for popstate (back/forward button)
+    window.addEventListener('popstate', handleNavigation)
+    // Intercept link clicks
+    document.addEventListener('click', handleLinkClick, true)
+
+    // Prevent navigation by pushing current state when trying to leave
+    if (isInferenceRunning) {
+      window.history.pushState(null, '', location.pathname)
+    }
+
+    return () => {
+      window.removeEventListener('popstate', handleNavigation)
+      document.removeEventListener('click', handleLinkClick, true)
+    }
+  }, [isInferenceRunning, location.pathname])
+
   return (
     <div className="researcher-page">
       <Helmet>
@@ -34,21 +90,15 @@ const ResearcherPage = (props) => {
         link3Url="/admin-page"
       />
 
-      <div className="researcher-overlay">
-        <ResearcherTools mode={mode} setMode={setMode} />
+      <div className="researcher-main-container">
+        <ResearcherTools
+          mode={mode}
+          setMode={setMode}
+          isInferenceRunning={isInferenceRunning}
+          setIsInferenceRunning={setIsInferenceRunning}
+        />
       </div>
 
-      <Footer4
-        link1={<Fragment><span className="researcher-page-text26">About Us</span></Fragment>}
-        link2={<Fragment><span className="researcher-page-text27">Contact Us</span></Fragment>}
-        link3={<Fragment><span className="researcher-page-text28">FAQs</span></Fragment>}
-        link4={<Fragment><span className="researcher-page-text29">Support</span></Fragment>}
-        link5={<Fragment><span className="researcher-page-text30">Blog</span></Fragment>}
-        termsLink={<Fragment><span className="researcher-page-text31">Terms of Service</span></Fragment>}
-        cookiesLink={<Fragment><span className="researcher-page-text32">Cookies Policy</span></Fragment>}
-        privacyLink={<Fragment><span className="researcher-page-text33">Privacy Policy</span></Fragment>}
-        logoSrc="https://images.unsplash.com/photo-1521058001910-55b77aba2203?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MTMyMXwwfDF8cmFuZG9tfHx8fHx8fHx8MTc0Nzk0MjcwN3w&ixlib=rb-4.1.0&q=80&w=1080"
-      />
     </div>
   )
 }

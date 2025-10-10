@@ -240,7 +240,7 @@ def run_inference_with_progress(data_path=None, model_path=None, model_file=None
     # Define detonation coordinates
     detonation_xy = [float(x) for x in FLAGS.detonation_xy]
     
-    print(f"INITIALIZATION: Starting FGN inference with {nsteps} rollout steps", flush=True)
+    print(f"INITIALISATION: Starting FGN inference with {nsteps} rollout steps", flush=True)
     
     # Inference for each case
     for idx, sample_path in enumerate(dataset):

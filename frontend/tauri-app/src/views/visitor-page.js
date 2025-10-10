@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import Navbar8 from "../components/navbar8";
+import Footer4 from "../components/footer4";   // ✅ footer
 import "./visitor-page.css";
 
 const MODES = [
@@ -42,6 +43,7 @@ function SimulationSection({ simId, title }) {
 
   return (
     <section className="section">
+      
       <div className="section-header">
         <h2 className="section-title">{title}</h2>
         <p className="section-sub">Pre-rendered media</p>
@@ -104,6 +106,19 @@ export default function VisitorPage(){
         <SimulationSection simId={2} title="Concrete Centre Explosion" />
         <SimulationSection simId={3} title="Steel Beam Bending Test" />
       </div>
+
+      {/* ✅ Footer at bottom */}
+      <Footer4
+        link1="About Us"
+        link2="Contact Us"
+        link3="FAQs"
+        link4="Support"
+        link5="Blog"
+        termsLink="Terms of Service"
+        cookiesLink="Cookies Policy"
+        privacyLink="Privacy Policy"
+        logoSrc="https://images.unsplash.com/photo-1521058001910-55b77aba2203"
+      />
     </div>
   );
 }

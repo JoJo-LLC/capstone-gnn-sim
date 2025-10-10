@@ -1,0 +1,172 @@
+.startup-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(135deg, #f5a76d, #719fd8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  animation: fadeInBackground 0.6s ease-out forwards;
+}
+
+.startup-modal-box {
+  background: rgba(17, 17, 17, 0.85);
+  padding: 2rem 2.5rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  text-align: center;
+  width: 100%;
+  max-width: 420px;
+  color: #fff;
+  font-family: 'Segoe UI', sans-serif;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.startup-modal-title {
+  margin-bottom: 1.25rem;
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-shadow: 0 1px 3px rgba(255, 255, 255, 0.2);
+}
+
+.startup-modal-subtitle {
+  font-size: 1rem;
+  opacity: 0.85;
+}
+
+.startup-modal-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.startup-button {
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  min-width: 120px;
+}
+
+.startup-button.cpu,
+.startup-button.gpu {
+  background-color: #4ade80;
+  color: #111;
+}
+
+.startup-button.cpu:hover,
+.startup-button.gpu:hover {
+  background-color: #32cd60;
+  color: #000;
+  transform: scale(1.05);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInBackground {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.startup-modal-description {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  opacity: 0.8;
+  min-height: 1.5em;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.startup-modal-error {
+  margin-top: 1.25rem;
+  color: #ffaaaa;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+/* status & spinner row */
+.startup-status {
+  margin-top: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  flex-direction: column;
+  transition: all 0.3s ease;
+}
+
+.startup-status-text {
+  color: #ffffffcc;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+/* fade out animation when modal closes */
+.fade-out {
+  animation: fadeOutBackground 0.35s ease-in forwards;
+}
+
+.box-fade-out {
+  animation: fadeOutUp 0.35s ease-in forwards;
+}
+
+@keyframes fadeOutBackground {
+  from { opacity: 1; }
+  to { opacity: 0; pointer-events: none; }
+}
+
+@keyframes fadeOutUp {
+  from { transform: translateY(0); opacity: 1; }
+  to { transform: translateY(-8px); opacity: 0; }
+}
+
+/* ensure disabled button looks disabled */
+.startup-button[disabled],
+.startup-button[aria-disabled="true"] {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+
+/* Spinner animation */
+.startup-spinner {
+  width: 42px;
+  height: 42px;
+  border: 5px solid #ffffff33;
+  border-top: 5px solid #ffffff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-top: 2rem;
+}
+
+@keyframes spin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
