@@ -10,9 +10,10 @@
   flex: 1;
   width: 100%;
   height: calc(100vh - 70px); /* Account for navbar height */
+  max-height: calc(100vh - 70px); /* Prevent container expansion */
   display: grid;
   grid-template-columns: 20% 1fr; /* Narrower sidebar: 20% of width */
-  grid-template-rows: 65% 35%; /* Shorter visualization (45%), taller logs (55%) */
+  grid-template-rows: 65% 35%; /* Shorter visualization (65%), taller logs (35%) */
   grid-template-areas:
     "sidebar visualization"
     "sidebar logs";
