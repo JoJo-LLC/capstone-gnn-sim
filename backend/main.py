@@ -921,13 +921,13 @@ def sanitize_output(line: str) -> str:
 
 # Joe's Progress-enabled FGN inference endpoint with real-time step tracking and security
 @app.post("/run-npz-inference-progress/")
-async def run_npz_inference_with_progress(data_path: str, nsteps: int, detonation_xy: str = "0,0", expanded_search: bool = False, model_path: str = "./model_4_inference/NS5e-4_1e-2_R14_L5N64_PosNsx10/", model_file: str = "model-066000.pt"):
+async def run_npz_inference_with_progress(data_path: str, nsteps: int, detonation_xy: str = "0,0", expanded_search: bool = False, model_path: str = "./model_4_inference/NS5e-4_1e-2_R14_L5N64_PosNsx10/", model_file: str = "model-066000.pt", unlimited_mode: bool = False):
     """Run FGN inference on existing NPZ file with real-time progress streaming with security"""
     global current_inference_count
-    
+
     # Validate all input parameters
     data_path = validate_data_path(data_path)
-    nsteps = validate_nsteps(nsteps)
+    nsteps = validate_nsteps(nsteps, unlimited_mode=unlimited_mode)
     detonation_xy = validate_detonation_xy(detonation_xy)
     
 
@@ -1110,9 +1110,14 @@ async def run_npz_inference_with_progress(data_path: str, nsteps: int, detonatio
                             if len(line) < 200:  # Limit debug output length
                                 yield f"data: [DEBUG] {line}\n\n"
                 
-                # Wait for process to complete with timeout
+                # Wait for process to complete with timeout (or unlimited)
                 try:
-                    return_code = await asyncio.wait_for(process.wait(), timeout=21600)  # 6 hour timeout
+                    if unlimited_mode:
+                        # Unlimited mode: wait indefinitely
+                        return_code = await process.wait()
+                    else:
+                        # Normal mode: 6 hour timeout
+                        return_code = await asyncio.wait_for(process.wait(), timeout=21600)
                 except asyncio.TimeoutError:
                     process.terminate()
                     await asyncio.sleep(1)
