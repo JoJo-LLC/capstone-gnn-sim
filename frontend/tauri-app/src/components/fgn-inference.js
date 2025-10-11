@@ -195,6 +195,7 @@ const FGNInference = ({ onSimulationComplete, onLogMessage, onStatusChange, onRu
         if (jsonResponse.status === 'duplicate_found') {
           // Handle duplicate simulation
           const existingSim = jsonResponse.existing_simulation
+          const simKey = jsonResponse.simulation_key  // Get sim_key from backend
           const execDate = existingSim.execution_date ? new Date(existingSim.execution_date).toLocaleString() : 'Unknown'
           const execTime = existingSim.execution_time ? existingSim.execution_time.toFixed(1) : 'Unknown'
 
@@ -204,14 +205,16 @@ const FGNInference = ({ onSimulationComplete, onLogMessage, onStatusChange, onRu
           addLogLine(`⚙️ Parameters: Steps=${existingSim.parameters.nsteps}, Detonation=${existingSim.parameters.detonation_xy}`, 'debug')
           addLogLine(`📅 Previously run on: ${execDate}`, 'debug')
           addLogLine(`⏱️ Execution time: ${execTime}s`, 'debug')
+          addLogLine(`🔑 Simulation key: ${simKey}`, 'debug')
           addLogLine('💡 This configuration has already been processed. Results are available in the database.', 'info')
 
           setIsRunning(false)
 
-          // Load the existing results
-          const gifUrl = `http://localhost:8000/gallery/${dataPath}/gif?cacheBust=${Date.now()}`
-          const mp4Url = `http://localhost:8000/gallery/${encodeURIComponent(dataPath)}/mp4?cacheBust=${Date.now()}`
-          const fragmentGifUrl = `http://localhost:8000/gallery/${encodeURIComponent(dataPath)}/fragment_gif?cacheBust=${Date.now()}`
+          // Use sim_key from backend response to fetch correct files
+          const simKeyParam = simKey ? `&sim_key=${encodeURIComponent(simKey)}` : ''
+          const gifUrl = `http://localhost:8000/gallery/${dataPath}/gif?cacheBust=${Date.now()}${simKeyParam}`
+          const mp4Url = `http://localhost:8000/gallery/${encodeURIComponent(dataPath)}/mp4?cacheBust=${Date.now()}${simKeyParam}`
+          const fragmentGifUrl = `http://localhost:8000/gallery/${encodeURIComponent(dataPath)}/fragment_gif?cacheBust=${Date.now()}${simKeyParam}`
           if (onSimulationComplete) onSimulationComplete({ gifUrl, mp4Url, fragmentGifUrl })
 
           return
@@ -221,6 +224,7 @@ const FGNInference = ({ onSimulationComplete, onLogMessage, onStatusChange, onRu
       const reader = response.body.getReader()
       readerRef.current = reader
       const decoder = new TextDecoder()
+      let capturedSimKey = null
 
       while (true) {
         const { done, value } = await reader.read()
@@ -230,6 +234,14 @@ const FGNInference = ({ onSimulationComplete, onLogMessage, onStatusChange, onRu
         for (let line of lines) {
           if (!line.startsWith('data: ')) continue
           const data = line.substring(6).trim()
+
+          // Capture sim_key from backend
+          if (data.startsWith('SIM_KEY:')) {
+            capturedSimKey = data.substring(8).trim()
+            addLogLine(`🔑 Simulation key: ${capturedSimKey}`, 'debug')
+            continue
+          }
+
           if (data === 'COMPLETE') {
             // Set to 100% before completing
             if (onProgressUpdate) {
@@ -239,9 +251,12 @@ const FGNInference = ({ onSimulationComplete, onLogMessage, onStatusChange, onRu
             updateStatus(`✅ Inference completed in ${elapsed}s`, 'complete')
             addLogLine('🎉 Inference completed successfully!', 'complete')
             setIsRunning(false)
-            const gifUrl = `http://localhost:8000/gallery/${dataPath}/gif?cacheBust=${Date.now()}`
-           const mp4Url = `http://localhost:8000/gallery/${encodeURIComponent(dataPath)}/mp4?cacheBust=${Date.now()}`
-            const fragmentGifUrl = `http://localhost:8000/gallery/${encodeURIComponent(dataPath)}/fragment_gif?cacheBust=${Date.now()}`
+
+            // Use sim_key if available, otherwise fall back to data_path
+            const simKeyParam = capturedSimKey ? `&sim_key=${encodeURIComponent(capturedSimKey)}` : ''
+            const gifUrl = `http://localhost:8000/gallery/${dataPath}/gif?cacheBust=${Date.now()}${simKeyParam}`
+            const mp4Url = `http://localhost:8000/gallery/${encodeURIComponent(dataPath)}/mp4?cacheBust=${Date.now()}${simKeyParam}`
+            const fragmentGifUrl = `http://localhost:8000/gallery/${encodeURIComponent(dataPath)}/fragment_gif?cacheBust=${Date.now()}${simKeyParam}`
             if (onSimulationComplete) onSimulationComplete({ gifUrl, mp4Url, fragmentGifUrl })
             return
           } else if (data === 'ERROR') {
