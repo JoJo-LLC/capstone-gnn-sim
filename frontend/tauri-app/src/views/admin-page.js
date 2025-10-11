@@ -11,6 +11,7 @@ const AdminPage = () => {
   const [selectedSim, setSelectedSim] = useState(null)
   const [loading, setLoading] = useState(true)
   const [gifUrl, setGifUrl] = useState(null)
+  const [fragmentGifUrl, setFragmentGifUrl] = useState(null)
   const [ensuringGif, setEnsuringGif] = useState(false)
 
   useEffect(() => {
@@ -40,9 +41,24 @@ const AdminPage = () => {
     return `${directUrl}?t=${Date.now()}`
   }
 
+  const ensureFragmentGifAndGetUrl = async (sim) => {
+    try {
+      const genUrl = `${BASE}/gallery/${encodeURIComponent(sim.data_path)}/fragment_gif`
+      const response = await fetch(genUrl)
+      if (response.ok) {
+        return `${genUrl}?t=${Date.now()}`
+      }
+      return null
+    } catch (e) {
+      console.error('Failed to fetch fragment GIF:', e)
+      return null
+    }
+  }
+
   const handleRowClick = async (sim) => {
     setSelectedSim(null)
     setGifUrl(null)
+    setFragmentGifUrl(null)
     setEnsuringGif(true)
 
     try {
@@ -52,8 +68,11 @@ const AdminPage = () => {
 
       const url = await ensureGifAndGetUrl(sim)
       setGifUrl(url)
+
+      const fragmentUrl = await ensureFragmentGifAndGetUrl(sim)
+      setFragmentGifUrl(fragmentUrl)
     } catch (e) {
-      console.error('Failed to fetch simulation details or GIF:', e)
+      console.error('Failed to fetch simulation details or GIFs:', e)
     } finally {
       setEnsuringGif(false)
     }
@@ -143,16 +162,28 @@ const AdminPage = () => {
               <div className="details-container">
                 <h2>{selectedSim.data_path}</h2>
 
-                <div className="gif-container" style={{ minHeight: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {ensuringGif ? (
-                    <p>Preparing preview…</p>
-                  ) : gifUrl ? (
-                    <img src={gifUrl} alt={`${selectedSim.data_path} animation`} className="sim-gif" />
-                  ) : (
-                    <div className="gif-container">
-                  <p>No GIF available for this simulation</p>
-                    </div>
-                )}
+                <div className="gif-section">
+                  <div className="gif-container" style={{ minHeight: 200, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                    <h3>EPS Output</h3>
+                    {ensuringGif ? (
+                      <p>Preparing preview…</p>
+                    ) : gifUrl ? (
+                      <img src={gifUrl} alt={`${selectedSim.data_path} EPS animation`} className="sim-gif" />
+                    ) : (
+                      <p>No EPS GIF available for this simulation</p>
+                    )}
+                  </div>
+
+                  <div className="gif-container" style={{ minHeight: 200, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', marginTop: '20px' }}>
+                    <h3>Fragment Output</h3>
+                    {ensuringGif ? (
+                      <p>Preparing preview…</p>
+                    ) : fragmentGifUrl ? (
+                      <img src={fragmentGifUrl} alt={`${selectedSim.data_path} Fragment animation`} className="sim-gif" />
+                    ) : (
+                      <p>No Fragment GIF available for this simulation</p>
+                    )}
+                  </div>
                 </div>
 
                 <div className="details-section">

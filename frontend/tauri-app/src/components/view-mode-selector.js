@@ -11,19 +11,19 @@ const ViewModeSelector = ({ value, onChange }) => {
           className={value === 'single-frame' ? 'active' : ''}
           onClick={() => onChange('single-frame')}
         >
-          Single Frame
+          EPS
         </button>
         <button
           className={value === 'frame-by-frame' ? 'active' : ''}
           onClick={() => onChange('frame-by-frame')}
         >
-          Frame-by-Frame
+          EPS Frame-by-Frame
         </button>
         <button
-          className={value === 'side-by-side' ? 'active' : ''}
-          onClick={() => onChange('side-by-side')}
+          className={value === 'fragment' ? 'active' : ''}
+          onClick={() => onChange('fragment')}
         >
-          Side-by-Side
+          Fragment View
         </button>
       </div>
     </div>

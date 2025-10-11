@@ -142,6 +142,10 @@
   border-bottom: 1px solid #333;
 }
 
+.gif-section {
+  margin-bottom: 25px;
+}
+
 .gif-container {
   width: 100%;
   background-color: #1a1a1a;
@@ -153,6 +157,18 @@
   justify-content: center;
   min-height: 300px;
   margin-bottom: 25px;
+}
+
+.gif-container h3 {
+  width: 100%;
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0 0 10px 0;
+  text-align: center;
+  padding: 10px;
+  background-color: #2a2a2a;
+  border-bottom: 1px solid #333;
 }
 
 .gif-container img,

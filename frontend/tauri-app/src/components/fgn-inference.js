@@ -159,13 +159,20 @@ const FGNInference = ({ onSimulationComplete, onLogMessage, onStatusChange, onRu
       return
     }
 
+    // Convert nsteps to number
+    const nstepsNum = parseInt(nsteps, 10)
+    if (isNaN(nstepsNum)) {
+      alert('Steps must be a valid number')
+      return
+    }
+
     // Reset UI
     setIsRunning(true)
     setCurrentStep(0)
-    setTotalSteps(nsteps)
+    setTotalSteps(nstepsNum)
     startTimeRef.current = Date.now()
-    updateStatus(`Starting FGN inference (${nsteps} steps)...`, 'running')
-    addLogLine(`🚀 Starting inference with ${nsteps} steps on ${dataPath}`, 'case')
+    updateStatus(`Starting FGN inference (${nstepsNum} steps)...`, 'running')
+    addLogLine(`🚀 Starting inference with ${nstepsNum} steps on ${dataPath}`, 'case')
     addLogLine(`🧠 Using model: ${modelPath}${modelFile}`, 'debug')
     addLogLine(`💥 Detonation coordinates: ${detonationXY}`, 'debug')
     if (unlimitedMode) {
@@ -173,13 +180,43 @@ const FGNInference = ({ onSimulationComplete, onLogMessage, onStatusChange, onRu
     }
 
     try {
-      const url = `http://localhost:8000/run-npz-inference-progress/?data_path=${dataPath}&nsteps=${nsteps}&detonation_xy=${encodeURIComponent(detonationXY)}&expanded_search=false&model_path=${encodeURIComponent(modelPath)}&model_file=${encodeURIComponent(modelFile)}&unlimited_mode=${unlimitedMode}`
+      const url = `http://localhost:8000/run-npz-inference-progress/?data_path=${dataPath}&nsteps=${nstepsNum}&detonation_xy=${encodeURIComponent(detonationXY)}&expanded_search=false&model_path=${encodeURIComponent(modelPath)}&model_file=${encodeURIComponent(modelFile)}&unlimited_mode=${unlimitedMode}`
 
       const response = await fetch(url, {
         method: 'POST',
         headers: { Accept: 'text/event-stream', 'Cache-Control': 'no-cache' }
       })
       if (!response.ok) throw new Error(`HTTP ${response.status}`)
+
+      // Check if response is JSON (duplicate detection) before reading as stream
+      const contentType = response.headers.get('content-type')
+      if (contentType && contentType.includes('application/json')) {
+        const jsonResponse = await response.json()
+        if (jsonResponse.status === 'duplicate_found') {
+          // Handle duplicate simulation
+          const existingSim = jsonResponse.existing_simulation
+          const execDate = existingSim.execution_date ? new Date(existingSim.execution_date).toLocaleString() : 'Unknown'
+          const execTime = existingSim.execution_time ? existingSim.execution_time.toFixed(1) : 'Unknown'
+
+          updateStatus('ℹ️ Duplicate simulation detected', 'info')
+          addLogLine('🔍 Duplicate simulation detected in database', 'info')
+          addLogLine(`📋 Data Path: ${existingSim.data_path}`, 'debug')
+          addLogLine(`⚙️ Parameters: Steps=${existingSim.parameters.nsteps}, Detonation=${existingSim.parameters.detonation_xy}`, 'debug')
+          addLogLine(`📅 Previously run on: ${execDate}`, 'debug')
+          addLogLine(`⏱️ Execution time: ${execTime}s`, 'debug')
+          addLogLine('💡 This configuration has already been processed. Results are available in the database.', 'info')
+
+          setIsRunning(false)
+
+          // Load the existing results
+          const gifUrl = `http://localhost:8000/gallery/${dataPath}/gif?cacheBust=${Date.now()}`
+          const mp4Url = `http://localhost:8000/gallery/${encodeURIComponent(dataPath)}/mp4?cacheBust=${Date.now()}`
+          const fragmentGifUrl = `http://localhost:8000/gallery/${encodeURIComponent(dataPath)}/fragment_gif?cacheBust=${Date.now()}`
+          if (onSimulationComplete) onSimulationComplete({ gifUrl, mp4Url, fragmentGifUrl })
+
+          return
+        }
+      }
 
       const reader = response.body.getReader()
       readerRef.current = reader
@@ -204,7 +241,8 @@ const FGNInference = ({ onSimulationComplete, onLogMessage, onStatusChange, onRu
             setIsRunning(false)
             const gifUrl = `http://localhost:8000/gallery/${dataPath}/gif?cacheBust=${Date.now()}`
            const mp4Url = `http://localhost:8000/gallery/${encodeURIComponent(dataPath)}/mp4?cacheBust=${Date.now()}`
-            if (onSimulationComplete) onSimulationComplete({ gifUrl, mp4Url })
+            const fragmentGifUrl = `http://localhost:8000/gallery/${encodeURIComponent(dataPath)}/fragment_gif?cacheBust=${Date.now()}`
+            if (onSimulationComplete) onSimulationComplete({ gifUrl, mp4Url, fragmentGifUrl })
             return
           } else if (data === 'ERROR') {
             updateStatus('❌ Inference failed', 'error')

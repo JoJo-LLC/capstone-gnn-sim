@@ -212,18 +212,18 @@ async def generate_mp4(data_path: str):
 
     return FileResponse(mp4_path, media_type="video/mp4", filename=f"{data_path}.mp4")
 
-CSV_DIR = os.path.join(os.path.dirname(__file__), "output", "0.4_6", "property")
+@app.get("/export/{data_path}/csv_all")
+async def export_all_csv(data_path: str):
+    """Export all CSV files from backend/output/{data_path}/property as a zip"""
+    base_dir = os.path.join(os.path.dirname(__file__), "output")
+    csv_dir = os.path.join(base_dir, data_path, "property")
 
+    if not os.path.exists(csv_dir):
+        raise HTTPException(status_code=404, detail=f"CSV directory not found for {data_path}")
 
-@app.get("/csv/all")
-async def get_all_csv():
-    
-    if not os.path.exists(CSV_DIR):
-        raise HTTPException(status_code=404, detail="CSV directory not found")
-
-    csv_files = glob.glob(os.path.join(CSV_DIR, "*.csv"))
+    csv_files = glob.glob(os.path.join(csv_dir, "*.csv"))
     if not csv_files:
-        raise HTTPException(status_code=404, detail="No CSV files found")
+        raise HTTPException(status_code=404, detail=f"No CSV files found in {data_path}/property")
 
     # Create an in-memory zip
     zip_buffer = io.BytesIO()
@@ -236,7 +236,61 @@ async def get_all_csv():
     return StreamingResponse(
         zip_buffer,
         media_type="application/zip",
-        headers={"Content-Disposition": "attachment; filename=csv_files.zip"}
+        headers={"Content-Disposition": f"attachment; filename={data_path}_csv_files.zip"}
+    )
+
+@app.get("/export/{data_path}/gifs_all")
+async def export_all_gifs(data_path: str):
+    """Export both EPS and Fragment GIFs as a zip"""
+    base_dir = os.path.join(os.path.dirname(__file__), "output")
+    eps_dir = os.path.join(base_dir, data_path, "eps")
+    fragment_dir = os.path.join(base_dir, data_path, "fragment")
+
+    # Create an in-memory zip
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
+        # Add EPS GIF
+        eps_gif = os.path.join(eps_dir, f"{data_path}.gif")
+        if os.path.exists(eps_gif):
+            zipf.write(eps_gif, arcname=f"{data_path}_eps.gif")
+
+        # Add Fragment GIF
+        fragment_gif = os.path.join(fragment_dir, f"{data_path}_fragment.gif")
+        if os.path.exists(fragment_gif):
+            zipf.write(fragment_gif, arcname=f"{data_path}_fragment.gif")
+
+    zip_buffer.seek(0)
+    return StreamingResponse(
+        zip_buffer,
+        media_type="application/zip",
+        headers={"Content-Disposition": f"attachment; filename={data_path}_gifs.zip"}
+    )
+
+@app.get("/export/{data_path}/mp4s_all")
+async def export_all_mp4s(data_path: str):
+    """Export both EPS and Fragment MP4s as a zip"""
+    base_dir = os.path.join(os.path.dirname(__file__), "output")
+    eps_dir = os.path.join(base_dir, data_path, "eps")
+    fragment_dir = os.path.join(base_dir, data_path, "fragment")
+
+    # Create an in-memory zip
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
+        # Add EPS MP4
+        eps_mp4 = os.path.join(eps_dir, f"{data_path}.mp4")
+        if os.path.exists(eps_mp4):
+            zipf.write(eps_mp4, arcname=f"{data_path}_eps.mp4")
+
+        # Add Fragment MP4
+        fragment_mp4 = os.path.join(fragment_dir, f"{data_path}_fragment.mp4")
+        if os.path.exists(fragment_mp4):
+            zipf.write(fragment_mp4, arcname=f"{data_path}_fragment.mp4")
+
+    zip_buffer.seek(0)
+    return StreamingResponse(
+        zip_buffer,
+        media_type="application/zip",
+        headers={"Content-Disposition": f"attachment; filename={data_path}_mp4s.zip"}
     )
 
 # Inserted /infer endpoint before root GET
