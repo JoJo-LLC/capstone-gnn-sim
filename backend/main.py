@@ -60,11 +60,15 @@ GIFS_DIR = BASE_DIR / "output" / "gifs"
 GIFS_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/gifs", StaticFiles(directory=str(GIFS_DIR)), name="gifs")
 
-# generating gif from pngs in output/{data_path}/eps
+# generating gif from pngs in output/{sim_key}/eps (using hashed directories)
 @app.get("/gallery/{data_path}/gif")
 async def generate_gif(data_path: str, sim_key: Optional[str] = None):
     base_dir = os.path.join(os.path.dirname(__file__), "output")
-    output_dir = os.path.join(base_dir, data_path, "eps")
+
+    # Use sim_key for directory lookup if provided, otherwise fall back to data_path
+    dir_name = sim_key if sim_key else data_path
+    output_dir = os.path.join(base_dir, dir_name, "eps")
+
     if not os.path.exists(output_dir):
         raise HTTPException(status_code=404, detail="Output directory not found")
 
@@ -74,12 +78,12 @@ async def generate_gif(data_path: str, sim_key: Optional[str] = None):
 
     images = [Image.open(png).convert("RGB") for png in png_files]
 
-    # filename = <sim_key>.gif if provided, else fallback to <data_path>.gif
-    gif_name = f"{sim_key}.gif" if sim_key else f"{data_path}.gif"
-    gif_path = GIFS_DIR / gif_name
+    # Save in the same directory as the EPS PNGs (matching fragment GIF pattern)
+    gif_name = f"{dir_name}.gif"
+    gif_path = os.path.join(output_dir, gif_name)
 
     images[0].save(
-        str(gif_path),
+        gif_path,
         save_all=True,
         append_images=images[1:],
         duration=150,
@@ -98,7 +102,7 @@ async def generate_gif(data_path: str, sim_key: Optional[str] = None):
                 {"simulation_key": sim_key},
                 {"$set": {
                     "fgn_execution.results.gif_file": {
-                        "path": f"/gifs/{gif_name}",
+                        "path": f"/output/{dir_name}/eps/{gif_name}",
                         "size_bytes": size_bytes,
                         "created_at": created
                     }
@@ -113,13 +117,17 @@ async def generate_gif(data_path: str, sim_key: Optional[str] = None):
     except Exception as e:
         print(f"Failed to update GIF metadata: {e}")
 
-    return FileResponse(str(gif_path), media_type="image/gif", filename=gif_name)
+    return FileResponse(gif_path, media_type="image/gif", filename=gif_name)
 
-# Generating GIF from PNGs in output/{data_path}/fragment
+# Generating GIF from PNGs in output/{sim_key}/fragment (using hashed directories)
 @app.get("/gallery/{data_path}/fragment_gif")
 async def generate_fragment_gif(data_path: str, sim_key: Optional[str] = None):
     base_dir = os.path.join(os.path.dirname(__file__), "output")
-    output_dir = os.path.join(base_dir, data_path, "fragment")
+
+    # Use sim_key for directory lookup if provided, otherwise fall back to data_path
+    dir_name = sim_key if sim_key else data_path
+    output_dir = os.path.join(base_dir, dir_name, "fragment")
+
     if not os.path.exists(output_dir):
         raise HTTPException(status_code=404, detail="Fragment directory not found")
 
@@ -130,7 +138,7 @@ async def generate_fragment_gif(data_path: str, sim_key: Optional[str] = None):
     images = [Image.open(png).convert("RGB") for png in png_files]
 
     # Save in the same directory as the fragment PNGs (like EPS)
-    gif_name = f"{data_path}_fragment.gif"
+    gif_name = f"{dir_name}_fragment.gif"
     gif_path = os.path.join(output_dir, gif_name)
 
     images[0].save(
@@ -153,7 +161,7 @@ async def generate_fragment_gif(data_path: str, sim_key: Optional[str] = None):
                 {"simulation_key": sim_key},
                 {"$set": {
                     "fgn_execution.results.fragment_gif_file": {
-                        "path": f"/output/{data_path}/fragment/{gif_name}",
+                        "path": f"/output/{dir_name}/fragment/{gif_name}",
                         "size_bytes": size_bytes,
                         "created_at": created
                     }
@@ -170,13 +178,16 @@ async def generate_fragment_gif(data_path: str, sim_key: Optional[str] = None):
 
     return FileResponse(gif_path, media_type="image/gif", filename=gif_name)
 
-# Generating MP4 from PNGs in output/{data_path}/fragment
+# Generating MP4 from PNGs in output/{sim_key}/fragment (using hashed directories)
 @app.get("/gallery/{data_path}/fragment_mp4")
-async def generate_fragment_mp4(data_path: str):
+async def generate_fragment_mp4(data_path: str, sim_key: Optional[str] = None):
     from moviepy.video.io.ImageSequenceClip import ImageSequenceClip
     base_dir = os.path.join(os.path.dirname(__file__), "output")
-    output_dir = os.path.join(base_dir, data_path, "fragment")
-    mp4_path = os.path.join(output_dir, f"{data_path}_fragment.mp4")
+
+    # Use sim_key for directory lookup if provided, otherwise fall back to data_path
+    dir_name = sim_key if sim_key else data_path
+    output_dir = os.path.join(base_dir, dir_name, "fragment")
+    mp4_path = os.path.join(output_dir, f"{dir_name}_fragment.mp4")
 
     png_files = sorted(glob.glob(os.path.join(output_dir, "*.png")))
     if not png_files:
@@ -189,14 +200,17 @@ async def generate_fragment_mp4(data_path: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error converting fragment PNGs to MP4: {e}")
 
-    return FileResponse(mp4_path, media_type="video/mp4", filename=f"{data_path}_fragment.mp4")
+    return FileResponse(mp4_path, media_type="video/mp4", filename=f"{dir_name}_fragment.mp4")
 
 @app.get("/gallery/{data_path}/mp4")
-async def generate_mp4(data_path: str):
+async def generate_mp4(data_path: str, sim_key: Optional[str] = None):
     from moviepy.video.io.ImageSequenceClip import ImageSequenceClip
     base_dir = os.path.join(os.path.dirname(__file__), "output")
-    output_dir = os.path.join(base_dir, data_path, "eps")
-    mp4_path = os.path.join(output_dir, f"{data_path}.mp4")
+
+    # Use sim_key for directory lookup if provided, otherwise fall back to data_path
+    dir_name = sim_key if sim_key else data_path
+    output_dir = os.path.join(base_dir, dir_name, "eps")
+    mp4_path = os.path.join(output_dir, f"{dir_name}.mp4")
 
     png_files = sorted(glob.glob(os.path.join(output_dir, "*.png")))
     if not png_files:
@@ -213,13 +227,16 @@ async def generate_mp4(data_path: str):
     return FileResponse(mp4_path, media_type="video/mp4", filename=f"{data_path}.mp4")
 
 @app.get("/export/{data_path}/csv_all")
-async def export_all_csv(data_path: str):
-    """Export all CSV files from backend/output/{data_path}/property as a zip"""
+async def export_all_csv(data_path: str, sim_key: Optional[str] = None):
+    """Export all CSV files from backend/output/{sim_key}/property as a zip"""
     base_dir = os.path.join(os.path.dirname(__file__), "output")
-    csv_dir = os.path.join(base_dir, data_path, "property")
+
+    # Use sim_key for directory lookup if provided, otherwise fall back to data_path
+    dir_name = sim_key if sim_key else data_path
+    csv_dir = os.path.join(base_dir, dir_name, "property")
 
     if not os.path.exists(csv_dir):
-        raise HTTPException(status_code=404, detail=f"CSV directory not found for {data_path}")
+        raise HTTPException(status_code=404, detail=f"CSV directory not found for {dir_name}")
 
     csv_files = glob.glob(os.path.join(csv_dir, "*.csv"))
     if not csv_files:
@@ -240,22 +257,25 @@ async def export_all_csv(data_path: str):
     )
 
 @app.get("/export/{data_path}/gifs_all")
-async def export_all_gifs(data_path: str):
+async def export_all_gifs(data_path: str, sim_key: Optional[str] = None):
     """Export both EPS and Fragment GIFs as a zip"""
     base_dir = os.path.join(os.path.dirname(__file__), "output")
-    eps_dir = os.path.join(base_dir, data_path, "eps")
-    fragment_dir = os.path.join(base_dir, data_path, "fragment")
+
+    # Use sim_key for directory lookup if provided, otherwise fall back to data_path
+    dir_name = sim_key if sim_key else data_path
+    eps_dir = os.path.join(base_dir, dir_name, "eps")
+    fragment_dir = os.path.join(base_dir, dir_name, "fragment")
 
     # Create an in-memory zip
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
         # Add EPS GIF
-        eps_gif = os.path.join(eps_dir, f"{data_path}.gif")
+        eps_gif = os.path.join(eps_dir, f"{dir_name}.gif")
         if os.path.exists(eps_gif):
             zipf.write(eps_gif, arcname=f"{data_path}_eps.gif")
 
         # Add Fragment GIF
-        fragment_gif = os.path.join(fragment_dir, f"{data_path}_fragment.gif")
+        fragment_gif = os.path.join(fragment_dir, f"{dir_name}_fragment.gif")
         if os.path.exists(fragment_gif):
             zipf.write(fragment_gif, arcname=f"{data_path}_fragment.gif")
 
@@ -267,22 +287,25 @@ async def export_all_gifs(data_path: str):
     )
 
 @app.get("/export/{data_path}/mp4s_all")
-async def export_all_mp4s(data_path: str):
+async def export_all_mp4s(data_path: str, sim_key: Optional[str] = None):
     """Export both EPS and Fragment MP4s as a zip"""
     base_dir = os.path.join(os.path.dirname(__file__), "output")
-    eps_dir = os.path.join(base_dir, data_path, "eps")
-    fragment_dir = os.path.join(base_dir, data_path, "fragment")
+
+    # Use sim_key for directory lookup if provided, otherwise fall back to data_path
+    dir_name = sim_key if sim_key else data_path
+    eps_dir = os.path.join(base_dir, dir_name, "eps")
+    fragment_dir = os.path.join(base_dir, dir_name, "fragment")
 
     # Create an in-memory zip
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
         # Add EPS MP4
-        eps_mp4 = os.path.join(eps_dir, f"{data_path}.mp4")
+        eps_mp4 = os.path.join(eps_dir, f"{dir_name}.mp4")
         if os.path.exists(eps_mp4):
             zipf.write(eps_mp4, arcname=f"{data_path}_eps.mp4")
 
         # Add Fragment MP4
-        fragment_mp4 = os.path.join(fragment_dir, f"{data_path}_fragment.mp4")
+        fragment_mp4 = os.path.join(fragment_dir, f"{dir_name}_fragment.mp4")
         if os.path.exists(fragment_mp4):
             zipf.write(fragment_mp4, arcname=f"{data_path}_fragment.mp4")
 
@@ -877,7 +900,7 @@ async def run_npz_inference(data_path: str, nsteps: int, detonation_xy: str = "0
         
         print(f"Running FGN inference for {nsteps} steps on {npz_file}...")
         inference_start_time = time.time()
-        
+
         # Run FGN inference
         inference_cmd = [
             "python", "-m", "gns.inference",
@@ -1089,6 +1112,7 @@ async def run_npz_inference_with_progress(data_path: str, nsteps: int, detonatio
             return {
                 "status": "duplicate_found",
                 "message": "This exact simulation was already run",
+                "simulation_key": sim_key,  # Include sim_key so frontend can fetch correct files
                 "existing_simulation": {
                     "data_path": data_path,
                     "parameters": duplicate["fgn_execution"]["parameters"],
@@ -1191,7 +1215,7 @@ async def run_npz_inference_with_progress(data_path: str, nsteps: int, detonatio
             db_inner = DatabaseConnection()
 
             try:
-                # Start the inference process using our progress-enabled script  
+                # Start the inference process using our progress-enabled script
                 inference_cmd = [
                     "python", "-u", "/app/src/gns_inference_with_progress.py",
                     f"--data_path={data_source_path}",
@@ -1261,10 +1285,29 @@ async def run_npz_inference_with_progress(data_path: str, nsteps: int, detonatio
                 
                 if return_code == 0:
                     yield f"data: ✓ FGN inference completed successfully in {total_time:.1f}s\n\n"
-                    
-                    # Check output files
+
+                    # Move output files from temporary location to hashed directory
                     output_base_dir = f"/app/src/output"
-                    case_output_dir = os.path.join(output_base_dir, data_path)
+                    temp_output_dir = os.path.join(output_base_dir, data_path)  # Temporary GNS output
+                    final_output_dir = os.path.join(output_base_dir, sim_key)  # Final hashed location
+
+                    if os.path.exists(temp_output_dir):
+                        try:
+                            # Move the entire directory to the hashed location
+                            if os.path.exists(final_output_dir):
+                                shutil.rmtree(final_output_dir)  # Remove old version if exists
+                            shutil.move(temp_output_dir, final_output_dir)
+                            yield f"data: ✓ Moved output files to: {sim_key}\n\n"
+                            case_output_dir = final_output_dir
+                        except Exception as move_error:
+                            yield f"data: ⚠ Warning: Failed to move files: {str(move_error)}\n\n"
+                            case_output_dir = temp_output_dir
+                    else:
+                        case_output_dir = final_output_dir
+
+                    # Send sim_key to frontend so it can fetch GIFs with the correct path
+                    yield f"data: SIM_KEY:{sim_key}\n\n"
+
                     if os.path.exists(case_output_dir):
                         output_files = {}
                         for subdir in ['eps', 'fragment', 'mass', 'property']:
@@ -1385,3 +1428,52 @@ async def get_fgn_simulation_by_key(simulation_key: str, db: DatabaseConnection 
     if not simulation:
         raise HTTPException(status_code=404, detail="Simulation not found")
     return {"status": "found", "simulation": simulation}
+
+@app.delete("/fgn-simulation/{simulation_key}")
+async def delete_fgn_simulation(simulation_key: str, db: DatabaseConnection = Depends(get_db)):
+    """
+    Delete FGN simulation by simulation_key
+    - Removes database record
+    - Deletes output directory with all generated files
+    Returns: Success/failure status with details
+    """
+    try:
+        # Get simulation details before deleting
+        simulation = await db.get_fgn_simulation_by_simulation_key(simulation_key)
+        if not simulation:
+            raise HTTPException(status_code=404, detail="Simulation not found")
+
+        # Delete output directory if it exists
+        output_base_dir = os.path.join(os.path.dirname(__file__), "output")
+        sim_output_dir = os.path.join(output_base_dir, simulation_key)
+
+        files_deleted = False
+        if os.path.exists(sim_output_dir):
+            try:
+                shutil.rmtree(sim_output_dir)
+                files_deleted = True
+                print(f"Deleted output directory: {sim_output_dir}")
+            except Exception as e:
+                print(f"Warning: Failed to delete output directory: {e}")
+
+        # Delete database record
+        result = await db.collections['fgn_simulations'].delete_one({"simulation_key": simulation_key})
+
+        if result.deleted_count > 0:
+            return {
+                "status": "success",
+                "message": f"Simulation {simulation_key} deleted successfully",
+                "details": {
+                    "database_record_deleted": True,
+                    "output_files_deleted": files_deleted,
+                    "data_path": simulation.get("data_path"),
+                    "simulation_key": simulation_key
+                }
+            }
+        else:
+            raise HTTPException(status_code=500, detail="Failed to delete database record")
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error deleting simulation: {str(e)}")
