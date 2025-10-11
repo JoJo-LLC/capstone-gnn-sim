@@ -114,6 +114,83 @@ async def generate_gif(data_path: str, sim_key: Optional[str] = None):
         print(f"Failed to update GIF metadata: {e}")
 
     return FileResponse(str(gif_path), media_type="image/gif", filename=gif_name)
+
+# Generating GIF from PNGs in output/{data_path}/fragment
+@app.get("/gallery/{data_path}/fragment_gif")
+async def generate_fragment_gif(data_path: str, sim_key: Optional[str] = None):
+    base_dir = os.path.join(os.path.dirname(__file__), "output")
+    output_dir = os.path.join(base_dir, data_path, "fragment")
+    if not os.path.exists(output_dir):
+        raise HTTPException(status_code=404, detail="Fragment directory not found")
+
+    png_files = sorted(glob.glob(os.path.join(output_dir, "*.png")))
+    if not png_files:
+        raise HTTPException(status_code=404, detail="No fragment PNG files found")
+
+    images = [Image.open(png).convert("RGB") for png in png_files]
+
+    # Save in the same directory as the fragment PNGs (like EPS)
+    gif_name = f"{data_path}_fragment.gif"
+    gif_path = os.path.join(output_dir, gif_name)
+
+    images[0].save(
+        gif_path,
+        save_all=True,
+        append_images=images[1:],
+        duration=500,
+        loop=0
+    )
+
+    # persist metadata to DB
+    try:
+        db = DatabaseConnection()
+        size_bytes = os.path.getsize(gif_path)
+        created = datetime.now(timezone.utc)
+
+        if sim_key:
+            # update by simulation_key
+            await db.collections["fgn_simulations"].update_one(
+                {"simulation_key": sim_key},
+                {"$set": {
+                    "fgn_execution.results.fragment_gif_file": {
+                        "path": f"/output/{data_path}/fragment/{gif_name}",
+                        "size_bytes": size_bytes,
+                        "created_at": created
+                    }
+                }},
+                upsert=False
+            )
+        else:
+            # legacy fallback
+            await db.update_simulation_gif(data_path, str(gif_path), size_bytes)
+
+        await db.close_connection()
+    except Exception as e:
+        print(f"Failed to update fragment GIF metadata: {e}")
+
+    return FileResponse(gif_path, media_type="image/gif", filename=gif_name)
+
+# Generating MP4 from PNGs in output/{data_path}/fragment
+@app.get("/gallery/{data_path}/fragment_mp4")
+async def generate_fragment_mp4(data_path: str):
+    from moviepy.video.io.ImageSequenceClip import ImageSequenceClip
+    base_dir = os.path.join(os.path.dirname(__file__), "output")
+    output_dir = os.path.join(base_dir, data_path, "fragment")
+    mp4_path = os.path.join(output_dir, f"{data_path}_fragment.mp4")
+
+    png_files = sorted(glob.glob(os.path.join(output_dir, "*.png")))
+    if not png_files:
+        raise HTTPException(status_code=404, detail="No fragment PNG files found")
+
+    try:
+        clip = ImageSequenceClip(png_files, fps=2)  # slower fps for fragments (2 vs 6 for eps)
+        clip.write_videofile(mp4_path, codec="libx264", audio=False)
+        clip.close()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error converting fragment PNGs to MP4: {e}")
+
+    return FileResponse(mp4_path, media_type="video/mp4", filename=f"{data_path}_fragment.mp4")
+
 @app.get("/gallery/{data_path}/mp4")
 async def generate_mp4(data_path: str):
     from moviepy.video.io.ImageSequenceClip import ImageSequenceClip
