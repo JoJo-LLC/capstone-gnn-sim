@@ -86,6 +86,7 @@ const ResearcherTools = ({ mode, setMode, isInferenceRunning, setIsInferenceRunn
                   <li>
                     <strong>Step 1: Data Preprocessing</strong>
                     <ul>
+                      <li>Upload your d3plot folder to app/srs/backend</li>
                       <li>Click "Select d3plot Folder" to choose your LS-DYNA simulation folder</li>
                       <li>Click "Convert to NPZ" to process the d3plot files</li>
                       <li>Wait for conversion to complete (status shown below button)</li>
@@ -94,11 +95,12 @@ const ResearcherTools = ({ mode, setMode, isInferenceRunning, setIsInferenceRunn
                   <li>
                     <strong>Step 2: FGN Inference</strong>
                     <ul>
-                      <li>Enter the number of simulation steps (10-100)</li>
+                      <li>Enter the number of simulation steps (10-1000)</li>
                       <li>Enter the data path (folder name from Step 1)</li>
                       <li>Configure model path, model file, and detonation coordinates</li>
                       <li>Click "Start" to begin FGN inference</li>
                       <li>Monitor real-time progress in Process Logs (bottom right)</li>
+                      <li>💡 <strong>Tip:</strong> For more steps and unlimited timeout check the unlimited mode checkbox</li>
                     </ul>
                   </li>
                   <li>
@@ -144,13 +146,14 @@ const ResearcherTools = ({ mode, setMode, isInferenceRunning, setIsInferenceRunn
             <ViewModeSelector value={viewMode} onChange={setViewMode} />
           </div>
           <div className="visualization-export">
-            <ExportButtons />
+            <ExportButtons onLogMessage={addLogLine} />
           </div>
         </div>
         <div className="visualization-content">
           <PreviewOutput
   gifUrl={previewUrl?.gifUrl}
    mp4Url={previewUrl?.mp4Url}
+   fragmentGifUrl={previewUrl?.fragmentGifUrl}
    viewMode={viewMode}
    isInferenceRunning={isInferenceRunning}
    progress={inferenceProgress}

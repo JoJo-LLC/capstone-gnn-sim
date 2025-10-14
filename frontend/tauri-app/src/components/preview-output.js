@@ -2,7 +2,7 @@
 import React from 'react'
 import './preview-output.css'
 
-const PreviewOutput = ({ gifUrl, mp4Url, viewMode, isInferenceRunning, progress }) => {
+const PreviewOutput = ({ gifUrl, mp4Url, fragmentGifUrl, viewMode, isInferenceRunning, progress }) => {
   const { percentage = 0, current = 0, total = 0 } = progress || {}
 
   const getPhaseText = () => {
@@ -65,35 +65,14 @@ const PreviewOutput = ({ gifUrl, mp4Url, viewMode, isInferenceRunning, progress 
       ) : null
     }
 
-    if (viewMode === 'side-by-side') {
-      if (gifUrl && mp4Url) {
-        return (
-          <div className="preview-side-by-side">
-            <img src={gifUrl} alt="Simulation Output (GIF)" className="preview-output-image half" />
-            <video
-              key={mp4Url}
-              src={mp4Url}
-              controls
-              loop
-              muted
-              className="preview-output-image half"
-            />
-          </div>
-        )
-      }
-      // Fallback if only one is available
-      return gifUrl ? (
-        <img src={gifUrl} alt="Simulation Output (GIF)" className="preview-output-image" />
-      ) : mp4Url ? (
-        <video
-          key={mp4Url}
-          src={mp4Url}
-          controls
-          loop
-          muted
-          className="preview-output-image"
-        />
-      ) : null
+    if (viewMode === 'fragment') {
+      return fragmentGifUrl ? (
+        <img src={fragmentGifUrl} alt="Fragment View (GIF)" className="preview-output-image" />
+      ) : (
+        <p className="thq-body-small preview-output-placeholder">
+          No fragment data available. Run FGN inference to generate fragment visualisation.
+        </p>
+      )
     }
 
     return null
