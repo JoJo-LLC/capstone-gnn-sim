@@ -6,9 +6,9 @@ import Footer4 from "../components/footer4";   // ✅ footer
 import "./visitor-page.css";
 
 const MODES = [
-  { id: "single", label: "Single Frame" },
-  { id: "frame",  label: "Frame by Frame" },
-  { id: "side",   label: "Side by Side" },
+  { id: "single", label: "Gif" },
+  { id: "frame",  label: "MP4 Slider" },
+  { id: "side",   label: "GNN VS Ls-Dyna" },
 ];
 
 const mediaUrl = (simId, modeId) => {
