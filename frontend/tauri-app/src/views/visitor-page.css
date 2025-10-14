@@ -17,6 +17,7 @@
   flex-direction:column;
   background:var(--bg);
   color:var(--text);
+  animation: fadeIn 0.8s ease-in-out;
 }
 
 /* page spacing under Navbar */
