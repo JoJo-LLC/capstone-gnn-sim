@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { resourceDir } from "@tauri-apps/api/path";
 import './StartupModal.css';
+
+const appendDebug = (msg) => {
+  const el = document.getElementById("startup-debug-log");
+  if (el) {
+    el.textContent += `\n${msg}`;
+    el.scrollTop = el.scrollHeight; // auto-scroll to bottom
+  }
+};
 
 const StartupModal = ({ onStartupComplete }) => {
   const [hoveredMode, setHoveredMode] = useState("default");
@@ -23,7 +32,16 @@ const StartupModal = ({ onStartupComplete }) => {
     setStatusMessage(`Launching ${mode.toUpperCase()} backend...`);
     await new Promise((r) => setTimeout(r, 0)); // Let React repaint spinner before blocking
     try {
-      const result = await invoke("start_backend_shell", { mode });
+      const resourceDirPath = await resourceDir(); // Get path to resource directory
+      console.log("📁 resourceDirPath:", resourceDirPath);
+      appendDebug(`📁 resourceDirPath: ${resourceDirPath}`);
+      console.log("🧠 Invoking backend with:", { mode, resourceDirPath });
+      appendDebug(`🧠 Invoking backend with: mode=${mode}, resourceDirPath=${resourceDirPath}`);
+
+      const result = await invoke("start_backend_shell", {
+        mode,
+        resourceDirPath, // Pass required second argument
+      });
 
       if (result?.status === "ok") {
         setStatusMessage("All good to go 👍");
@@ -45,7 +63,11 @@ const StartupModal = ({ onStartupComplete }) => {
         setLoading(false);
       }
     } catch (err) {
-      setError(err?.message || "Backend failed to start.");
+      setError(`Backend failed to start: ${err?.message || err || "unknown error"}`);
+      console.error("❌ Error launching backend:", err);
+      appendDebug(`❌ Error launching backend: ${err?.message || err || "unknown error"}`);
+      console.log("🛑 Full error object:", err);
+      appendDebug(`🛑 Full error object: ${JSON.stringify(err)}`);
       setStatusMessage("");
       setLoading(false);
     }
@@ -99,6 +121,18 @@ const StartupModal = ({ onStartupComplete }) => {
             </button>
           </div>
         )}
+        <div className="startup-debug-log-wrapper">
+          <h4 style={{ marginBottom: "0.25rem" }}>🔍 Debug Log:</h4>
+          <pre id="startup-debug-log" style={{
+            backgroundColor: "#111",
+            color: "#0f0",
+            padding: "0.5rem",
+            maxHeight: "150px",
+            overflowY: "auto",
+            fontSize: "0.75rem",
+            borderRadius: "4px"
+          }}></pre>
+        </div>
       </div>
     </div>
   );
