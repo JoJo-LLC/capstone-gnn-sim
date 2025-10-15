@@ -5,6 +5,7 @@ use std::process::Command;
 use std::path::PathBuf;
 use tauri::{command, Manager};
 use dirs;
+use which::which;
 
 fn get_compose_contents(mode: &str) -> Result<String, String> {
     match mode {
@@ -68,8 +69,20 @@ fn run_docker_commands(path: std::path::PathBuf) -> Result<serde_json::Value, St
     println!("🔍 Will run docker-compose using: {}", path.display());
     let parent_dir = path.parent().unwrap_or(std::path::Path::new("."));
 
+    let docker_compose = which("docker-compose").or_else(|_| {
+        let fallback = "/usr/local/bin/docker-compose";
+        if PathBuf::from(fallback).exists() {
+            Ok(PathBuf::from(fallback))
+        } else {
+            Err(std::io::Error::new(
+                std::io::ErrorKind::NotFound,
+                "cannot find binary path",
+            ))
+        }
+    }).map_err(|e| format!("❌ Could not locate docker-compose in PATH or fallback: {}", e))?;
+
     // Best-effort: tear down any previous compose project for this compose file to avoid port conflicts
-    match Command::new("docker-compose")
+    match Command::new(&docker_compose)
         .arg("-f")
         .arg(&path)
         .arg("down")
@@ -82,19 +95,24 @@ fn run_docker_commands(path: std::path::PathBuf) -> Result<serde_json::Value, St
         Err(e) => println!("docker-compose down failed: {}", e),
     }
 
-    let build_status = Command::new("docker-compose")
+    let output = Command::new(&docker_compose)
         .arg("-f")
         .arg(&path)
         .arg("build")
         .current_dir(parent_dir)
-        .status()
-        .map_err(|e| format!("Failed to build with {:?}: {}", path, e))?;
+        .output()
+        .map_err(|e| format!("❌ Failed to run docker-compose build: {}", e))?;
 
-    if !build_status.success() {
-        return Err(format!("Docker build failed for {:?}", path));
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        return Err(format!(
+            "❌ Docker build failed for {:?}\n--- STDOUT ---\n{}\n--- STDERR ---\n{}",
+            path, stdout, stderr
+        ));
     }
 
-    let up_status = Command::new("docker-compose")
+    let up_status = Command::new(&docker_compose)
         .arg("-f")
         .arg(&path)
         .arg("up")
