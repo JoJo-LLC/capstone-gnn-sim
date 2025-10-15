@@ -4,7 +4,7 @@ version: "3.8"
 services:
   backend:
     build:
-      context: ./resources/backend
+      context: ./backend
       dockerfile: Dockerfile.gpu
     ports:
       - "8000:8000"
@@ -13,7 +13,7 @@ services:
     environment:
       PYTHONPATH: /app:/app/gns-fragment:/app/src
     volumes:
-      - ./resources/backend:/app/src
+      - ./backend:/app/src
     working_dir: /app/src
 
   mongodb:

@@ -3,14 +3,14 @@ version: '3.8'
 services:
   gnn_cpu_backend:
     build:
-      context: ./resources/backend
+      context: ./backend
       dockerfile: Dockerfile.cpu
     ports:
       - "8000:8000"
     environment:
       PYTHONPATH: /app:/app/gns-fragment:/app/src
     volumes:
-      - ./resources/backend:/app/src
+      - ./backend:/app/src
     working_dir: /app/src
     depends_on:
       mongodb:
