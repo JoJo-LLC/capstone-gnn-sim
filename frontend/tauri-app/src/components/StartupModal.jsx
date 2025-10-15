@@ -4,11 +4,14 @@ import { resourceDir } from "@tauri-apps/api/path";
 import './StartupModal.css';
 
 const appendDebug = (msg) => {
-  const el = document.getElementById("startup-debug-log");
-  if (el) {
-    el.textContent += `\n${msg}`;
-    el.scrollTop = el.scrollHeight; // auto-scroll to bottom
-  }
+  // Debug logging to the modal is currently disabled.
+  // To re-enable, uncomment the lines below.
+
+  // const el = document.getElementById("startup-debug-log");
+  // if (el) {
+  //   el.textContent += `\n${msg}`;
+  //   el.scrollTop = el.scrollHeight; // auto-scroll to bottom
+  // }
 };
 
 const StartupModal = ({ onStartupComplete }) => {
@@ -30,13 +33,13 @@ const StartupModal = ({ onStartupComplete }) => {
     setLoading(true);
     setError(null);
     setStatusMessage(`Launching ${mode.toUpperCase()} backend...`);
-    await new Promise((r) => setTimeout(r, 0)); // Let React repaint spinner before blocking
+    await new Promise((resolve) => setTimeout(resolve, 50)); // Let React repaint spinner before blocking
     try {
       const resourceDirPath = await resourceDir(); // Get path to resource directory
-      console.log("📁 resourceDirPath:", resourceDirPath);
-      appendDebug(`📁 resourceDirPath: ${resourceDirPath}`);
-      console.log("🧠 Invoking backend with:", { mode, resourceDirPath });
-      appendDebug(`🧠 Invoking backend with: mode=${mode}, resourceDirPath=${resourceDirPath}`);
+      // console.log("📁 resourceDirPath:", resourceDirPath);
+      // appendDebug(`📁 resourceDirPath: ${resourceDirPath}`);
+      // console.log("🧠 Invoking backend with:", { mode, resourceDirPath });
+      // appendDebug(`🧠 Invoking backend with: mode=${mode}, resourceDirPath=${resourceDirPath}`);
 
       const result = await invoke("start_backend_shell", {
         mode,
@@ -64,10 +67,10 @@ const StartupModal = ({ onStartupComplete }) => {
       }
     } catch (err) {
       setError(`Backend failed to start: ${err?.message || err || "unknown error"}`);
-      console.error("❌ Error launching backend:", err);
-      appendDebug(`❌ Error launching backend: ${err?.message || err || "unknown error"}`);
-      console.log("🛑 Full error object:", err);
-      appendDebug(`🛑 Full error object: ${JSON.stringify(err)}`);
+      // console.error("❌ Error launching backend:", err);
+      // appendDebug(`❌ Error launching backend: ${err?.message || err || "unknown error"}`);
+      // console.log("🛑 Full error object:", err);
+      // appendDebug(`🛑 Full error object: ${JSON.stringify(err)}`);
       setStatusMessage("");
       setLoading(false);
     }
@@ -121,6 +124,7 @@ const StartupModal = ({ onStartupComplete }) => {
             </button>
           </div>
         )}
+        {/*
         <div className="startup-debug-log-wrapper">
           <h4 style={{ marginBottom: "0.25rem" }}>🔍 Debug Log:</h4>
           <pre id="startup-debug-log" style={{
@@ -133,6 +137,7 @@ const StartupModal = ({ onStartupComplete }) => {
             borderRadius: "4px"
           }}></pre>
         </div>
+        */}
       </div>
     </div>
   );
