@@ -64,10 +64,10 @@ const StartupModal = ({ onStartupComplete }) => {
         }
       } catch (err) {
         setError(`Backend failed to start: ${err?.message || err || "unknown error"}`);
-        console.error("❌ Error launching backend:", err);
-        appendDebug(`❌ Error launching backend: ${err?.message || err || "unknown error"}`);
-        console.log("🛑 Full error object:", err);
-        appendDebug(`🛑 Full error object: ${JSON.stringify(err)}`);
+        // console.error("❌ Error launching backend:", err);
+        // appendDebug(`❌ Error launching backend: ${err?.message || err || "unknown error"}`);
+        // console.log("🛑 Full error object:", err);
+        // appendDebug(`🛑 Full error object: ${JSON.stringify(err)}`);
         setStatusMessage("");
         setLoading(false);
       }
