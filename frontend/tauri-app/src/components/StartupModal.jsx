@@ -25,52 +25,53 @@ const StartupModal = ({ onStartupComplete }) => {
     gpu: "Run simulation using GPU — faster, but requires compatible hardware and more disk space.",
   };
 
-  const handleSelect = async (mode) => {
+  const handleSelect = (mode) => {
     if (loading) return; // Prevent double clicks
     setLoading(true);
+    setStatusMessage("❗ Please wait (may take a while)... ❗");
     setError(null);
-    setStatusMessage(`Launching ${mode.toUpperCase()} backend...`);
-    await new Promise((r) => setTimeout(r, 0)); // Let React repaint spinner before blocking
-    try {
-      const resourceDirPath = await resourceDir(); // Get path to resource directory
-      console.log("📁 resourceDirPath:", resourceDirPath);
-      appendDebug(`📁 resourceDirPath: ${resourceDirPath}`);
-      console.log("🧠 Invoking backend with:", { mode, resourceDirPath });
-      appendDebug(`🧠 Invoking backend with: mode=${mode}, resourceDirPath=${resourceDirPath}`);
 
-      const result = await invoke("start_backend_shell", {
-        mode,
-        resourceDirPath, // Pass required second argument
-      });
+    setTimeout(async () => {
+      try {
+        const resourceDirPath = await resourceDir(); // Get path to resource directory
+        console.log("📁 resourceDirPath:", resourceDirPath);
+        appendDebug(`📁 resourceDirPath: ${resourceDirPath}`);
+        console.log("🧠 Invoking backend with:", { mode, resourceDirPath });
+        appendDebug(`🧠 Invoking backend with: mode=${mode}, resourceDirPath=${resourceDirPath}`);
 
-      if (result?.status === "ok") {
-        setStatusMessage("All good to go 👍");
-        setBackendReady(true);
-        // Wait briefly before closing modal
-        setTimeout(() => {
-          setClosing(true);
+        const result = await invoke("start_backend_shell", {
+          mode,
+          resourceDirPath,
+        });
+
+        if (result?.status === "ok") {
+          setStatusMessage("All good to go 👍");
+          setBackendReady(true);
           setTimeout(() => {
-            if (typeof onStartupComplete === 'function') {
-              onStartupComplete(mode);
-            } else {
-              console.warn("onStartupComplete is not defined");
-            }
-          }, 300); // Match fade-out duration in CSS
-        }, 1000);
-      } else {
-        setError(result?.message || "Unknown error occurred.");
+            setClosing(true);
+            setTimeout(() => {
+              if (typeof onStartupComplete === 'function') {
+                onStartupComplete(mode);
+              } else {
+                console.warn("onStartupComplete is not defined");
+              }
+            }, 300);
+          }, 1000);
+        } else {
+          setError(result?.message || "Unknown error occurred.");
+          setStatusMessage("");
+          setLoading(false);
+        }
+      } catch (err) {
+        setError(`Backend failed to start: ${err?.message || err || "unknown error"}`);
+        console.error("❌ Error launching backend:", err);
+        appendDebug(`❌ Error launching backend: ${err?.message || err || "unknown error"}`);
+        console.log("🛑 Full error object:", err);
+        appendDebug(`🛑 Full error object: ${JSON.stringify(err)}`);
         setStatusMessage("");
         setLoading(false);
       }
-    } catch (err) {
-      setError(`Backend failed to start: ${err?.message || err || "unknown error"}`);
-      console.error("❌ Error launching backend:", err);
-      appendDebug(`❌ Error launching backend: ${err?.message || err || "unknown error"}`);
-      console.log("🛑 Full error object:", err);
-      appendDebug(`🛑 Full error object: ${JSON.stringify(err)}`);
-      setStatusMessage("");
-      setLoading(false);
-    }
+    }, 100);
   };
 
   return (
@@ -105,10 +106,14 @@ const StartupModal = ({ onStartupComplete }) => {
 
         <div className="startup-modal-status-wrapper">
           <div className="startup-status">
-            {loading ? (
-              <div className="startup-spinner" aria-hidden="true" />
-            ) : (
-              backendReady && <div className="startup-status-text">{statusMessage}</div>
+            {loading && (
+              <>
+                <div className="startup-status-text">❗ Please wait (may take a while) ❗</div>
+                <div className="startup-spinner" aria-hidden="true" />
+              </>
+            )}
+            {!loading && backendReady && (
+              <div className="startup-status-text">{statusMessage}</div>
             )}
           </div>
         </div>
@@ -121,6 +126,7 @@ const StartupModal = ({ onStartupComplete }) => {
             </button>
           </div>
         )}
+        {/*
         <div className="startup-debug-log-wrapper">
           <h4 style={{ marginBottom: "0.25rem" }}>🔍 Debug Log:</h4>
           <pre id="startup-debug-log" style={{
@@ -133,6 +139,7 @@ const StartupModal = ({ onStartupComplete }) => {
             borderRadius: "4px"
           }}></pre>
         </div>
+        */}
       </div>
     </div>
   );
