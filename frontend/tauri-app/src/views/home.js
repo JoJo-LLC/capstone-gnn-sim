@@ -40,9 +40,7 @@ const Home = () => {
       {/* HERO */}
       <section className="bg-brand--white fullwidth">
         <Hero17
-          action1="Explore as Researcher"
-          action2="Explore as Visitor"
-          content1="Run fast structural simulations powered by a Graph Neural Network. Choose your role to get started."
+          content1="Welcome to our simulation platform — simple, private, and powerful."
           heading1="Structural Response Simulation System"
           image1Src="https://images.unsplash.com/photo-1675573206424-36f844f7627a"
         />
@@ -53,12 +51,12 @@ const Home = () => {
         <Steps2
           step1Title="Choose Your Role"
           step1Description="Select Researcher, Visitor, or Admin to access the relevant dashboard and features."
-          step2Title="Upload Files"
-          step2Description="Provide GNN inputs and LS-DYNA ground truth in .npz format."
-          step3Title="Customize Visualization"
-          step3Description="Switch between CPU/GPU, choose visualization mode, and scrub through frames interactively."
-          step4Title="Export Results"
-          step4Description="Save results as GIF, MP4, or CSV for reporting and further analysis."
+          step2Title="Data Preprocessing"
+          step2Description="Upload your LS-DYNA simulation folder and convert it into NPZ format using the built-in tool. Progress is shown beneath the button."
+          step3Title="FGN Inference"
+          step3Description="Configure inference parameters and run the simulation using the selected model. Track real-time progress in the log panel."
+          step4Title="View Results"
+          step4Description="Visualisation appears in top right panel\nUse mode selector to change between GIF, MP4, and comparison views"
         />
       </section>
 
@@ -90,7 +88,7 @@ const Home = () => {
       <section className="bg-brand--white fullwidth">
         <CTA26
           action1="Get Started"
-          content1="Choose your role to explore example simulations or run your own."
+          content1="Let's take you to the dashboard to run your first simulation."
           heading1="Ready to run a simulation?"
         />
       </section>
@@ -98,7 +96,7 @@ const Home = () => {
       {/* CONTACT / REPOSITORIES */}
       <section className="bg-brand--white fullwidth">
         <Contact10
-          content1="Repositories and docs for the Capstone project are available to contributors."
+          content1="Repositories and docs for the application are available to contributors."
           heading1="Project Repositories"
           location1="GNN / Model Serving"
           location2="Desktop App (Tauri + React)"
@@ -110,14 +108,11 @@ const Home = () => {
       {/* FOOTER */}
       <section className="bg-brand--white fullwidth">
         <Footer4
-          link1="About"
-          link2="Contact"
-          link3="FAQs"
-          link4="Support"
-          link5="Blog"
           termsLink="Terms of Service"
           cookiesLink="Cookies Policy"
           privacyLink="Privacy Policy"
+          hideExtraLinks={true}
+          hideLogo={true}
         />
       </section>
     </div>
