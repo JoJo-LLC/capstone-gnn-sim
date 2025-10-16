@@ -115,12 +115,15 @@
   animation: slideDown 0.3s ease;
   max-height: 400px;
   overflow-y: auto;
-  overflow-x: hidden;
+  overflow-x: auto; /* Allow horizontal scrolling */
+  word-wrap: break-word;
+  white-space: normal;
 }
 
-/* Scrollbar styling for help content */
+/* Scrollbar styling for help content - vertical */
 .help-content::-webkit-scrollbar {
   width: 6px;
+  height: 6px; /* Height for horizontal scrollbar */
 }
 
 .help-content::-webkit-scrollbar-track {
@@ -135,6 +138,11 @@
 
 .help-content::-webkit-scrollbar-thumb:hover {
   background: rgba(59, 130, 246, 0.7);
+}
+
+/* Horizontal scrollbar corner */
+.help-content::-webkit-scrollbar-corner {
+  background: rgba(0, 0, 0, 0.3);
 }
 
 @keyframes slideDown {

@@ -54,16 +54,21 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-#Mount: /output/* -> backend/output/*
-app.mount("/output", StaticFiles(directory=str(BASE_DIR / "output")), name="output")
-GIFS_DIR = BASE_DIR / "output" / "gifs"
+# Mount: /output/* -> /app/data/output/* (persistent data directory)
+# Create output directory in data mount if it doesn't exist
+DATA_OUTPUT_DIR = Path("/app/data/output")
+DATA_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+app.mount("/output", StaticFiles(directory=str(DATA_OUTPUT_DIR)), name="output")
+
+# Legacy gifs directory (for backward compatibility)
+GIFS_DIR = DATA_OUTPUT_DIR / "gifs"
 GIFS_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/gifs", StaticFiles(directory=str(GIFS_DIR)), name="gifs")
 
 # generating gif from pngs in output/{sim_key}/eps (using hashed directories)
 @app.get("/gallery/{data_path}/gif")
 async def generate_gif(data_path: str, sim_key: Optional[str] = None):
-    base_dir = os.path.join(os.path.dirname(__file__), "output")
+    base_dir = "/app/data/output"
 
     # Use sim_key for directory lookup if provided, otherwise fall back to data_path
     dir_name = sim_key if sim_key else data_path
@@ -122,7 +127,7 @@ async def generate_gif(data_path: str, sim_key: Optional[str] = None):
 # Generating GIF from PNGs in output/{sim_key}/fragment (using hashed directories)
 @app.get("/gallery/{data_path}/fragment_gif")
 async def generate_fragment_gif(data_path: str, sim_key: Optional[str] = None):
-    base_dir = os.path.join(os.path.dirname(__file__), "output")
+    base_dir = "/app/data/output"
 
     # Use sim_key for directory lookup if provided, otherwise fall back to data_path
     dir_name = sim_key if sim_key else data_path
@@ -182,7 +187,7 @@ async def generate_fragment_gif(data_path: str, sim_key: Optional[str] = None):
 @app.get("/gallery/{data_path}/fragment_mp4")
 async def generate_fragment_mp4(data_path: str, sim_key: Optional[str] = None):
     from moviepy.video.io.ImageSequenceClip import ImageSequenceClip
-    base_dir = os.path.join(os.path.dirname(__file__), "output")
+    base_dir = "/app/data/output"
 
     # Use sim_key for directory lookup if provided, otherwise fall back to data_path
     dir_name = sim_key if sim_key else data_path
@@ -205,7 +210,7 @@ async def generate_fragment_mp4(data_path: str, sim_key: Optional[str] = None):
 @app.get("/gallery/{data_path}/mp4")
 async def generate_mp4(data_path: str, sim_key: Optional[str] = None):
     from moviepy.video.io.ImageSequenceClip import ImageSequenceClip
-    base_dir = os.path.join(os.path.dirname(__file__), "output")
+    base_dir = "/app/data/output"
 
     # Use sim_key for directory lookup if provided, otherwise fall back to data_path
     dir_name = sim_key if sim_key else data_path
@@ -228,8 +233,8 @@ async def generate_mp4(data_path: str, sim_key: Optional[str] = None):
 
 @app.get("/export/{data_path}/csv_all")
 async def export_all_csv(data_path: str, sim_key: Optional[str] = None):
-    """Export all CSV files from backend/output/{sim_key}/property as a zip"""
-    base_dir = os.path.join(os.path.dirname(__file__), "output")
+    """Export all CSV files from /app/data/output/{sim_key}/property as a zip"""
+    base_dir = "/app/data/output"
 
     # Use sim_key for directory lookup if provided, otherwise fall back to data_path
     dir_name = sim_key if sim_key else data_path
@@ -259,7 +264,7 @@ async def export_all_csv(data_path: str, sim_key: Optional[str] = None):
 @app.get("/export/{data_path}/gifs_all")
 async def export_all_gifs(data_path: str, sim_key: Optional[str] = None):
     """Export both EPS and Fragment GIFs as a zip"""
-    base_dir = os.path.join(os.path.dirname(__file__), "output")
+    base_dir = "/app/data/output"
 
     # Use sim_key for directory lookup if provided, otherwise fall back to data_path
     dir_name = sim_key if sim_key else data_path
@@ -289,7 +294,7 @@ async def export_all_gifs(data_path: str, sim_key: Optional[str] = None):
 @app.get("/export/{data_path}/mp4s_all")
 async def export_all_mp4s(data_path: str, sim_key: Optional[str] = None):
     """Export both EPS and Fragment MP4s as a zip"""
-    base_dir = os.path.join(os.path.dirname(__file__), "output")
+    base_dir = "/app/data/output"
 
     # Use sim_key for directory lookup if provided, otherwise fall back to data_path
     dir_name = sim_key if sim_key else data_path
@@ -564,7 +569,7 @@ async def run_fgn_inference(nsteps: int, data_path: str, detonation_xy: str = "0
         
         # Docker container paths (when running inside container)
         gns_path = "/app/gns-fragment"
-        data_source_path = f"/app/src/{data_path}"  # e.g., /app/src/0.4_6
+        data_source_path = f"/app/data/{data_path}"  # e.g., /app/data/0.4_6
         
         # Validate data path exists
         if not os.path.exists(data_source_path):
@@ -654,7 +659,7 @@ async def run_fgn_inference(nsteps: int, data_path: str, detonation_xy: str = "0
             raise HTTPException(status_code=500, detail=f"FGN inference failed: {inference_error}")
         
         # Check for generated outputs
-        output_base_dir = f"/app/src/output"
+        output_base_dir = f"/app/data/output"
         case_output_dir = os.path.join(output_base_dir, data_path)
         output_exists = os.path.exists(case_output_dir)
         
@@ -737,9 +742,9 @@ async def convert_d3plot_to_npz(data_path: str):
         import subprocess
         import time
         
-        # Docker container paths 
+        # Docker container paths
         gns_path = "/app/gns-fragment"
-        data_source_path = f"/app/src/{data_path}"
+        data_source_path = f"/app/data/{data_path}"
         
         # Validate data path exists
         if not os.path.exists(data_source_path):
@@ -883,8 +888,8 @@ async def run_npz_inference(data_path: str, nsteps: int, detonation_xy: str = "0
         
         # Docker container paths
         gns_path = "/app/gns-fragment"
-        data_source_path = f"/app/src/{data_path}"
-        
+        data_source_path = f"/app/data/{data_path}"
+
         # Validate data path exists
         if not os.path.exists(data_source_path):
             raise HTTPException(status_code=404, detail=f"Data path not found: {data_source_path}")
@@ -941,7 +946,7 @@ async def run_npz_inference(data_path: str, nsteps: int, detonation_xy: str = "0
                 }
             
             # Check for generated outputs
-            output_base_dir = f"/app/src/output"
+            output_base_dir = f"/app/data/output"
             case_output_dir = os.path.join(output_base_dir, data_path)
             output_exists = os.path.exists(case_output_dir)
             
@@ -1011,20 +1016,20 @@ async def run_npz_inference(data_path: str, nsteps: int, detonation_xy: str = "0
 def validate_data_path(data_path: str) -> str:
     """Validate and sanitize data_path parameter - returns folder name only"""
     # Allow relative folder names (e.g., "0.4_6", "my_data.folder")
-    # Users should place their data folders in backend/ directory before running
+    # Users should place their data folders in the persistent data directory
 
     # Block absolute paths - they won't work in Docker container
     if os.path.isabs(data_path):
         raise HTTPException(
             status_code=400,
-            detail="Absolute paths not supported. Please place your data folder in the 'backend/' directory and provide just the folder name (e.g., '0.4_6')"
+            detail="Absolute paths not supported. Please place your data folder in '~/Documents/StructuralResponseSimulator/data/' and provide just the folder name (e.g., '0.4_6')"
         )
 
     # Block parent directory traversal for security
     if '..' in data_path or '/' in data_path or '\\' in data_path:
         raise HTTPException(
             status_code=400,
-            detail="Path traversal not allowed. Provide only the folder name within backend/ directory"
+            detail="Path traversal not allowed. Provide only the folder name within the data directory"
         )
 
     # Validate folder name format
@@ -1034,12 +1039,12 @@ def validate_data_path(data_path: str) -> str:
             detail="Invalid data_path: must be alphanumeric with dots/underscores/hyphens, max 50 chars"
         )
 
-    # Check if folder exists and provide helpful error
-    full_path = os.path.join('/app/src', data_path)
+    # Check if folder exists in persistent data directory
+    full_path = os.path.join('/app/data', data_path)
     if not os.path.exists(full_path):
         raise HTTPException(
             status_code=404,
-            detail=f"Data folder '{data_path}' not found. Please ensure the folder exists in your 'backend/' directory."
+            detail=f"Data folder '{data_path}' not found. Please place the folder in '~/Documents/StructuralResponseSimulator/data/' (mounted at /app/data in container)."
         )
 
     # Return just the folder name - endpoints will construct full paths as needed
@@ -1068,10 +1073,95 @@ def sanitize_output(line: str) -> str:
     """Sanitize output to prevent information disclosure"""
     # Remove absolute paths and replace with relative references
     line = re.sub(r'/app/src/', '', line)
-    line = re.sub(r'/app/gns-fragment/', '', line) 
+    line = re.sub(r'/app/gns-fragment/', '', line)
     # Remove any potential sensitive environment info
     line = re.sub(r'PYTHONPATH=.*', '[PYTHONPATH_REMOVED]', line)
     return line
+
+def resolve_model_path(model_path: str, model_file: str) -> tuple[str, str]:
+    """
+    Resolve model path with fallback logic:
+    1. Check user models directory (/app/models/)
+    2. Fall back to bundled models (/app/gns-fragment/)
+
+    Returns: (full_model_path, location_type)
+    """
+    # If model_path is absolute, validate it exists
+    if os.path.isabs(model_path):
+        if os.path.exists(model_path):
+            model_file_path = os.path.join(model_path, model_file)
+            if os.path.exists(model_file_path):
+                return (model_path, "absolute")
+            else:
+                raise HTTPException(status_code=404, detail=f"Model file '{model_file}' not found in '{model_path}'")
+        else:
+            raise HTTPException(status_code=404, detail=f"Model path not found: {model_path}")
+
+    # Try user models directory first (/app/models/{model_path}/)
+    user_model_path = os.path.join("/app/models", model_path)
+    if os.path.exists(user_model_path):
+        model_file_path = os.path.join(user_model_path, model_file)
+        if os.path.exists(model_file_path):
+            return (user_model_path, "user")
+        else:
+            raise HTTPException(status_code=404, detail=f"Model file '{model_file}' not found in user models directory '{model_path}'")
+
+    # Fall back to bundled default model (/app/gns-fragment/{model_path}/)
+    bundled_model_path = os.path.join("/app/gns-fragment", model_path)
+    if os.path.exists(bundled_model_path):
+        model_file_path = os.path.join(bundled_model_path, model_file)
+        if os.path.exists(model_file_path):
+            return (bundled_model_path, "bundled")
+        else:
+            raise HTTPException(status_code=404, detail=f"Model file '{model_file}' not found in bundled models directory '{model_path}'")
+
+    # Model not found anywhere
+    raise HTTPException(
+        status_code=404,
+        detail=f"Model path '{model_path}' not found. Place custom models in '~/Documents/StructuralResponseSimulator/models/' or use bundled default model path."
+    )
+
+@app.get("/models/list")
+async def list_available_models():
+    """
+    List all available models (user models and bundled defaults)
+    Returns: Dictionary with user_models and bundled_models arrays
+    """
+    models = {"user_models": [], "bundled_models": []}
+
+    # Scan user models directory
+    user_models_dir = Path("/app/models")
+    if user_models_dir.exists():
+        for model_dir in user_models_dir.iterdir():
+            if model_dir.is_dir():
+                # Find .pt files in this directory
+                pt_files = list(model_dir.glob("*.pt"))
+                if pt_files:
+                    models["user_models"].append({
+                        "name": model_dir.name,
+                        "path": model_dir.name,  # Relative path for API
+                        "model_files": [f.name for f in pt_files],
+                        "location": "user"
+                    })
+
+    # Scan bundled models directory
+    bundled_models_dir = Path("/app/gns-fragment")
+    model_inference_dir = bundled_models_dir / "model_4_inference"
+    if model_inference_dir.exists():
+        for model_dir in model_inference_dir.iterdir():
+            if model_dir.is_dir():
+                # Find .pt files in this directory
+                pt_files = list(model_dir.glob("*.pt"))
+                if pt_files:
+                    rel_path = f"./model_4_inference/{model_dir.name}/"
+                    models["bundled_models"].append({
+                        "name": model_dir.name,
+                        "path": rel_path,  # Relative path matching current default
+                        "model_files": [f.name for f in pt_files],
+                        "location": "bundled"
+                    })
+
+    return models
 
 # Joe's Progress-enabled FGN inference endpoint with real-time step tracking and security
 @app.post("/run-npz-inference-progress/")
@@ -1158,8 +1248,8 @@ async def run_npz_inference_with_progress(data_path: str, nsteps: int, detonatio
         
         # Docker container paths
         gns_path = "/app/gns-fragment"
-        data_source_path = f"/app/src/{data_path}"
-        
+        data_source_path = f"/app/data/{data_path}"
+
         # Validate data path exists
         if not os.path.exists(data_source_path):
             raise HTTPException(status_code=404, detail=f"Data path not found")
@@ -1204,10 +1294,13 @@ async def run_npz_inference_with_progress(data_path: str, nsteps: int, detonatio
         # Check for required NPZ file
         npz_file = f"{data_path}.npz"
         npz_path = os.path.join(data_source_path, npz_file)
-        
+
         if not os.path.exists(npz_path):
             raise HTTPException(status_code=400, detail=f"NPZ file not found. Use /convert-d3plot-to-npz/ first.")
 
+        # Resolve model path (user models take priority over bundled models)
+        resolved_model_path, model_location = resolve_model_path(model_path, model_file)
+        print(f"Using model from {model_location}: {resolved_model_path}")
 
         async def stream_inference():
             """Generator that streams inference progress in real-time using asyncio"""
@@ -1219,7 +1312,7 @@ async def run_npz_inference_with_progress(data_path: str, nsteps: int, detonatio
                 inference_cmd = [
                     "python", "-u", "/app/src/gns_inference_with_progress.py",
                     f"--data_path={data_source_path}",
-                    f"--model_path={model_path}",
+                    f"--model_path={resolved_model_path}",
                     f"--model_file={model_file}",
                     f"--nsteps={nsteps}",
                     f"--detonation_xy={detonation_xy}",
@@ -1287,7 +1380,7 @@ async def run_npz_inference_with_progress(data_path: str, nsteps: int, detonatio
                     yield f"data: ✓ FGN inference completed successfully in {total_time:.1f}s\n\n"
 
                     # Move output files from temporary location to hashed directory
-                    output_base_dir = f"/app/src/output"
+                    output_base_dir = f"/app/data/output"
                     temp_output_dir = os.path.join(output_base_dir, data_path)  # Temporary GNS output
                     final_output_dir = os.path.join(output_base_dir, sim_key)  # Final hashed location
 
@@ -1444,7 +1537,7 @@ async def delete_fgn_simulation(simulation_key: str, db: DatabaseConnection = De
             raise HTTPException(status_code=404, detail="Simulation not found")
 
         # Delete output directory if it exists
-        output_base_dir = os.path.join(os.path.dirname(__file__), "output")
+        output_base_dir = "/app/data/output"
         sim_output_dir = os.path.join(output_base_dir, simulation_key)
 
         files_deleted = False
