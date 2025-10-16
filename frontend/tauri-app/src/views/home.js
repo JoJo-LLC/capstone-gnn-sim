@@ -17,7 +17,7 @@ const Home = () => {
   return (
     <div className="home-container">
       <Helmet>
-        <title>Structural Response Simulation System — Capstone</title>
+        <title>Structural Response Simulation System</title>
         <meta
           name="description"
           content="Run fast, accurate structural simulations powered by Graph Neural Networks. Explore example runs, upload .npz inputs, visualize in 3D, and export results — all from a local-first desktop app."
@@ -43,7 +43,7 @@ const Home = () => {
           action1="Explore as Researcher"
           action2="Explore as Visitor"
           content1="Run fast structural simulations powered by a Graph Neural Network. Choose your role to get started."
-          heading1="Structural Response Simulation System (Capstone)"
+          heading1="Structural Response Simulation System"
           image1Src="https://images.unsplash.com/photo-1675573206424-36f844f7627a"
         />
       </section>
