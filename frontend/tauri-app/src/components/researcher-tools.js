@@ -82,42 +82,73 @@ const ResearcherTools = ({ mode, setMode, isInferenceRunning, setIsInferenceRunn
             {showHelp && (
               <div className="help-content">
                 <h4>Quick Start Guide</h4>
+
+                <div style={{ backgroundColor: '#1e3a5f', padding: '12px', borderRadius: '5px', marginBottom: '15px', border: '1px solid #2563eb' }}>
+                  <p style={{ margin: '0', fontSize: '0.9em', color: '#e0e7ff' }}>
+                    📁 <strong style={{ color: '#93c5fd' }}>Data Storage:</strong> Place your data folders in:<br/>
+                    <code style={{ backgroundColor: '#0f172a', padding: '3px 8px', borderRadius: '3px', color: '#7dd3fc', display: 'inline-block', marginTop: '4px', fontSize: '0.85em' }}>
+                      ~/Documents/StructuralResponseSimulator/data/
+                    </code>
+                  </p>
+                </div>
+
                 <ol>
                   <li>
                     <strong>Step 1: Data Preprocessing</strong>
                     <ul>
-                      <li>Upload your d3plot folder to app/srs/backend</li>
-                      <li>Click "Select d3plot Folder" to choose your LS-DYNA simulation folder</li>
+                      <li><strong>Place your d3plot folder</strong> in the persistent data directory:<br/>
+                        <code>~/Documents/StructuralResponseSimulator/data/your_folder_name/</code>
+                      </li>
+                      <li>In the UI, click "Select d3plot Folder" and browse to your folder</li>
                       <li>Click "Convert to NPZ" to process the d3plot files</li>
                       <li>Wait for conversion to complete (status shown below button)</li>
+                      <li>💡 The folder name you use will be your "data path" in Step 2</li>
                     </ul>
                   </li>
                   <li>
-                    <strong>Step 2: FGN Inference</strong>
+                    <strong>Step 2: FGN Inference Configuration</strong>
                     <ul>
-                      <li>Enter the number of simulation steps (10-1000)</li>
-                      <li>Enter the data path (folder name from Step 1)</li>
-                      <li>Configure model path, model file, and detonation coordinates</li>
+                      <li><strong>Steps:</strong> Enter number of simulation steps (10-1000, or enable unlimited mode)</li>
+                      <li><strong>Data Path:</strong> Enter just the folder name (e.g., "0.4_6" or "my_simulation")</li>
+                      <li><strong>Model Selection:</strong>
+                        <ul>
+                          <li>Default bundled models work automatically</li>
+                          <li>For custom models: Place in <code>~/Documents/StructuralResponseSimulator/models/</code></li>
+                          <li>Enter model folder name in "Model Path" field</li>
+                          <li>Select .pt file from that folder in "Model File" field</li>
+                        </ul>
+                      </li>
+                      <li><strong>Detonation XY:</strong> Coordinates in "x,y" format (e.g., "0,0")</li>
                       <li>Click "Start" to begin FGN inference</li>
                       <li>Monitor real-time progress in Process Logs (bottom right)</li>
-                      <li>💡 <strong>Tip:</strong> For more steps and unlimited timeout check the unlimited mode checkbox</li>
                     </ul>
                   </li>
                   <li>
-                    <strong>View Results</strong>
+                    <strong>Step 3: View & Export Results</strong>
                     <ul>
-                      <li>Visualisation appears in top right panel</li>
-                      <li>Use mode selector to switch views</li>
-                      <li>Export results using buttons in visualisation header</li>
+                      <li>Visualisation appears in top right panel automatically</li>
+                      <li>Use mode selector to switch between EPS, Frame-by-Frame, and Fragment views</li>
+                      <li>Export GIFs, MP4s, or CSVs using buttons in visualisation header</li>
+                      <li>Results persist in <code>~/Documents/StructuralResponseSimulator/data/output/</code></li>
                     </ul>
                   </li>
                 </ol>
-                <p className="help-note">
-                  💡 <strong>Tip:</strong> Folder browsing only selects the path - no files are actually uploaded to the interface.
-                </p>
+
+                <div style={{ backgroundColor: '#422006', padding: '12px', borderRadius: '5px', marginTop: '10px', border: '1px solid #f59e0b' }}>
+                  <p style={{ margin: '0', fontSize: '0.9em', color: '#fef3c7' }}>
+                    💡 <strong style={{ color: '#fbbf24' }}>Important Tips:</strong>
+                  </p>
+                  <ul style={{ marginTop: '8px', marginBottom: '0', fontSize: '0.9em', color: '#fde68a' }}>
+                    <li>Folder browsing only selects the path - no files are uploaded to the interface</li>
+                    <li>Use folder names only (not full paths) in Data Path field</li>
+                    <li>Models and data persist between app restarts</li>
+                    <li>Each unique parameter combination creates a separate simulation record</li>
+                  </ul>
+                </div>
               </div>
             )}
           </div>
+
 
           <div className="control-section">
             <h3 className="section-title">Step 1: Data Preprocessing</h3>

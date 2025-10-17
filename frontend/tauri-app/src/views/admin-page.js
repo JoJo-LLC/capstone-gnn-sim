@@ -311,6 +311,12 @@ const AdminPage = () => {
                 </div>
 
                 <div className="details-section">
+                  <h3>Simulation Info</h3>
+                  <p><strong>Simulation Key:</strong> <code style={{ backgroundColor: '#f0f0f0', padding: '2px 6px', borderRadius: '3px', fontSize: '0.9em' }}>{selectedSim.simulation_key}</code></p>
+                  <p><strong>Parameter Hash:</strong> <code style={{ backgroundColor: '#f0f0f0', padding: '2px 6px', borderRadius: '3px', fontSize: '0.9em' }}>{selectedSim.fgn_execution?.parameter_hash || 'N/A'}</code></p>
+                </div>
+
+                <div className="details-section">
                   <h3>Parameters</h3>
                   <p><strong>Steps:</strong> {selectedSim.fgn_execution?.parameters?.nsteps}</p>
                   <p><strong>Detonation XY:</strong> {selectedSim.fgn_execution?.parameters?.detonation_xy}</p>

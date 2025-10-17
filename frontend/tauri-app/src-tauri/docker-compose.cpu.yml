@@ -9,8 +9,12 @@ services:
       - "8000:8000"
     environment:
       PYTHONPATH: /app:/app/gns-fragment:/app/src
+      DATA_DIR: ${DATA_DIR}
+      MODELS_DIR: ${MODELS_DIR}
     volumes:
       - ./backend:/app/src
+      - ${DATA_DIR}:/app/data
+      - ${MODELS_DIR}:/app/models
     working_dir: /app/src
     depends_on:
       mongodb:
