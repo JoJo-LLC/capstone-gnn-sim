@@ -1,5 +1,6 @@
 import React, { useState, Fragment } from 'react'
 import { Link } from 'react-router-dom'
+import { Home } from 'lucide-react';
 
 import PropTypes from 'prop-types'
 
@@ -11,12 +12,8 @@ const Navbar8 = (props) => {
   return (
     <header className="navbar8-container1">
       <header data-thq="thq-navbar" className="navbar8-navbar-interactive">
-        <Link to="/" className="navbar8-navlink1">
-          <img
-            alt={props.logoAlt}
-            src={props.logoSrc}
-            className="navbar8-image1"
-          />
+        <Link to="/" className="navbar8-navlink1" style={{ display: 'flex', alignItems: 'center' }}>
+          <Home size={24} />
         </Link>
         <div data-thq="thq-navbar-nav" className="navbar8-desktop-menu">
           <nav className="navbar8-links1">
@@ -160,7 +157,7 @@ const Navbar8 = (props) => {
                 </div>
                 {link5AccordionOpen && (
                   <div className="navbar8-container6">
-                    <a href={props.linkUrlPage1}>
+                    <Link to="/researcher-page" onClick={() => setLink5AccordionOpen(false)}>
                       <div className="navbar8-menu-item1">
                         <img
                           alt={props.page1ImageAlt}
@@ -181,17 +178,15 @@ const Navbar8 = (props) => {
                             {props.page1Description ?? (
                               <Fragment>
                                 <span className="navbar8-text16">
-                                  Access tools for uploading files, toggling
-                                  CPU/GPU, selecting visualization mode, and
-                                  exporting results.
+                                  Run and view simulations using the pre-installed GNN/GNS machine learning model.
                                 </span>
                               </Fragment>
                             )}
                           </span>
                         </div>
                       </div>
-                    </a>
-                    <a href={props.linkUrlPage2}>
+                    </Link>
+                    <Link to="/visitor-page" onClick={() => setLink5AccordionOpen(false)}>
                       <div className="navbar8-menu-item2">
                         <img
                           alt={props.page2ImageAlt}
@@ -212,16 +207,15 @@ const Navbar8 = (props) => {
                             {props.page2Description ?? (
                               <Fragment>
                                 <span className="navbar8-text12">
-                                  Explore sample simulations in a grid gallery
-                                  format.
+                                  View example simulations even if you don't have your own data.
                                 </span>
                               </Fragment>
                             )}
                           </span>
                         </div>
                       </div>
-                    </a>
-                    <a href={props.linkUrlPage3}>
+                    </Link>
+                    <Link to="/admin-page" onClick={() => setLink5AccordionOpen(false)}>
                       <div className="navbar8-menu-item3">
                         <img
                           alt={props.page3ImageAlt}
@@ -242,44 +236,14 @@ const Navbar8 = (props) => {
                             {props.page3Description ?? (
                               <Fragment>
                                 <span className="navbar8-text18">
-                                  Manage user roles, permissions, and simulation
-                                  data.
+                                  Manage your simulation history and view associated data.
                                 </span>
                               </Fragment>
                             )}
                           </span>
                         </div>
                       </div>
-                    </a>
-                    <a href={props.linkUrlPage4}>
-                      <div className="navbar8-menu-item4">
-                        <img
-                          alt={props.page4ImageAlt}
-                          src={props.page4ImageSrc}
-                          className="navbar8-page4-image1"
-                        />
-                        <div className="navbar8-content4">
-                          <span className="navbar8-page41 thq-body-large">
-                            {props.page4 ?? (
-                              <Fragment>
-                                <span className="navbar8-text20">
-                                  Page Four
-                                </span>
-                              </Fragment>
-                            )}
-                          </span>
-                          <span className="thq-body-small">
-                            {props.page4Description ?? (
-                              <Fragment>
-                                <span className="navbar8-text13">
-                                  Page Four Description
-                                </span>
-                              </Fragment>
-                            )}
-                          </span>
-                        </div>
-                      </div>
-                    </a>
+                    </Link>
                   </div>
                 )}
               </div>
@@ -310,7 +274,7 @@ const Navbar8 = (props) => {
         {link5DropdownVisible && (
           <div className="navbar8-container7 thq-box-shadow">
             <div className="navbar8-link5-menu-list">
-              <a href={props.linkUrlPage1}>
+              <Link to="/researcher-page" onClick={() => setLink5DropdownVisible(false)}>
                 <div className="navbar8-menu-item5">
                   <img
                     alt={props.page1ImageAlt}
@@ -331,16 +295,15 @@ const Navbar8 = (props) => {
                       {props.page1Description ?? (
                         <Fragment>
                           <span className="navbar8-text16">
-                            Access tools for uploading files, toggling CPU/GPU,
-                            selecting visualization mode, and exporting results.
+                            Run and view simulations using the pre-installed GNN/GNS machine learning model.
                           </span>
                         </Fragment>
                       )}
                     </span>
                   </div>
                 </div>
-              </a>
-              <a href={props.linkUrlPage2}>
+              </Link>
+              <Link to="/visitor-page" onClick={() => setLink5DropdownVisible(false)}>
                 <div className="navbar8-menu-item6">
                   <img
                     alt={props.page2ImageAlt}
@@ -361,15 +324,15 @@ const Navbar8 = (props) => {
                       {props.page2Description ?? (
                         <Fragment>
                           <span className="navbar8-text12">
-                            Explore sample simulations in a grid gallery format.
+                            View example simulations even if you don't have your own data.
                           </span>
                         </Fragment>
                       )}
                     </span>
                   </div>
                 </div>
-              </a>
-              <a href={props.linkUrlPage3}>
+              </Link>
+              <Link to="/admin-page" onClick={() => setLink5DropdownVisible(false)}>
                 <div className="navbar8-menu-item7">
                   <img
                     alt={props.page3ImageAlt}
@@ -390,41 +353,14 @@ const Navbar8 = (props) => {
                       {props.page3Description ?? (
                         <Fragment>
                           <span className="navbar8-text18">
-                            Manage user roles, permissions, and simulation data.
+                            Manage your simulation history and view associated data.
                           </span>
                         </Fragment>
                       )}
                     </span>
                   </div>
                 </div>
-              </a>
-              <a href={props.linkUrlPage4}>
-                <div className="navbar8-menu-item8">
-                  <img
-                    alt={props.page4ImageAlt}
-                    src={props.page4ImageSrc}
-                    className="navbar8-page4-image2 thq-img-ratio-1-1"
-                  />
-                  <div className="navbar8-content8">
-                    <span className="navbar8-page42 thq-body-large">
-                      {props.page4 ?? (
-                        <Fragment>
-                          <span className="navbar8-text20">Page Four</span>
-                        </Fragment>
-                      )}
-                    </span>
-                    <span className="thq-body-small">
-                      {props.page4Description ?? (
-                        <Fragment>
-                          <span className="navbar8-text13">
-                            Page Four Description
-                          </span>
-                        </Fragment>
-                      )}
-                    </span>
-                  </div>
-                </div>
-              </a>
+              </Link>
             </div>
           </div>
         )}
@@ -440,7 +376,9 @@ const Navbar8 = (props) => {
 }
 
 Navbar8.defaultProps = {
-  linkUrlPage2: undefined,
+  linkUrlPage1: '/researcher-page',
+  linkUrlPage2: '/visitor-page',
+  linkUrlPage3: '/admin-page',
   page2ImageSrc:
     'https://images.unsplash.com/photo-1737703049274-0e661cb43bc9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MTMyMXwwfDF8cmFuZG9tfHx8fHx8fHx8MTc0Nzk0MDQ0M3w&ixlib=rb-4.1.0&q=80&w=1080',
   link2: undefined,
@@ -468,9 +406,7 @@ Navbar8.defaultProps = {
   page3ImageSrc:
     'https://images.unsplash.com/photo-1480694313141-fce5e697ee25?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MTMyMXwwfDF8cmFuZG9tfHx8fHx8fHx8MTc0Nzk0MDQ0M3w&ixlib=rb-4.1.0&q=80&w=1080',
   page1: undefined,
-  linkUrlPage1: '',
   linkUrlPage4: '',
-  linkUrlPage3: '',
 }
 
 Navbar8.propTypes = {

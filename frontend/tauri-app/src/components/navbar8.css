@@ -616,3 +616,11 @@
     padding: var(--dl-layout-space-unit);
   }
 }
+
+
+
+.navbar8-text10,
+.navbar8-text11,
+.navbar8-text14 {
+  color: #1a1a1a !important;
+}

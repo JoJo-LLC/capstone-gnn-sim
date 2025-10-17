@@ -33,9 +33,14 @@
       "icons/icon.ico"
     ],
     "resources": [
-    "docker-compose.cpu.yml",
-    "docker-compose.gpu.yml",
-    "backend"
+      "docker-compose.cpu.yml",
+      "docker-compose.gpu.yml",
+      "backend"
     ]
+  },
+  "plugins": {
+    "shell": {
+      "open": true
+    }
   }
 }

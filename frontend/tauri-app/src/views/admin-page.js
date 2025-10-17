@@ -359,14 +359,6 @@ const AdminPage = () => {
         </div>
       </div>
 
-      <Footer4
-        link1="About Us"
-        link2="Contact Us"
-        link3="FAQs"
-        link4="Support"
-        termsLink="Terms of Service"
-        privacyLink="Privacy Policy"
-      />
     </div>
   )
 }

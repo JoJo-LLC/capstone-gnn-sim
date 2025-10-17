@@ -1,6 +1,6 @@
 /* admin-page.css */
 
-/* Match the dark theme from researcher page */
+/* Apply dark theme with fade-in effect on load */
 .admin-page-container {
   background-color: #1a1a1a;
   min-height: 100vh;
@@ -301,4 +301,16 @@
 
 .delete-btn:active:not(:disabled) {
   transform: translateY(0);
+}
+/* Ensure dark text color for navbar dropdown content and navbar labels */
+.navbar8-text11,
+.navbar8-text10,
+.navbar8-text14,
+.navbar8-page12,
+.navbar8-page22,
+.navbar8-page32,
+.navbar8-text12,
+.navbar8-text16,
+.navbar8-text18 {
+  color: #1a1a1a !important;
 }
