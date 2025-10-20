@@ -37,7 +37,7 @@ const Contact10 = (props) => {
           <div className="contact10-container2">
             <img
               alt={props.location1ImageAlt}
-              src={props.location1ImageSrc}
+              src="/assets/Tauri app github ss.png"
               className="contact10-image1 thq-img-ratio-16-9"
             />
             <h3 className="contact10-text12 thq-heading-3">
@@ -57,21 +57,17 @@ const Contact10 = (props) => {
                 </Fragment>
               )}
             </p>
-            <div className="contact10-container3">
-              <a
-                href="https://example.com"
-                target="_blank"
-                rel="noreferrer noopener"
-                className="thq-body-small thq-button-flat"
-              >
-                Github Link
+            <p className="thq-body-small">
+              GitHub Repository:{" "}
+              <a href="https://github.com/qilinli/gns-fragment" target="_blank" rel="noopener noreferrer">
+                https://github.com/qilinli/gns-fragment
               </a>
-            </div>
+            </p>
           </div>
           <div className="contact10-container4">
             <img
               alt={props.location2ImageAlt}
-              src={props.location2ImageSrc}
+              src="/assets/gns github ss.png"
               className="contact10-image2 thq-img-ratio-16-9"
             />
             <h3 className="contact10-text14 thq-heading-3">
@@ -91,16 +87,12 @@ const Contact10 = (props) => {
                 </Fragment>
               )}
             </p>
-            <div className="contact10-container5">
-              <a
-                href="https://example.com"
-                target="_blank"
-                rel="noreferrer noopener"
-                className="thq-body-small thq-button-flat"
-              >
-                Gihub Link
+            <p className="thq-body-small">
+              GitHub Repository:{" "}
+              <a href="https://github.com/JoJo-LLC/capstone-gnn-sim" target="_blank" rel="noopener noreferrer">
+                https://github.com/JoJo-LLC/capstone-gnn-sim
               </a>
-            </div>
+            </p>
           </div>
         </div>
       </div>

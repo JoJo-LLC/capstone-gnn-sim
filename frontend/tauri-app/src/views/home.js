@@ -20,7 +20,7 @@ const Home = () => {
         <title>Structural Response Simulation System</title>
         <meta
           name="description"
-          content="Run fast, accurate structural simulations powered by Graph Neural Networks. Explore example runs, upload .npz inputs, visualize in 3D, and export results — all from a local-first desktop app."
+          content="Welcome to our simulation platform - simple,private and powerful."
         />
       </Helmet>
 
@@ -42,7 +42,7 @@ const Home = () => {
         <Hero17
           action1="Explore as Researcher"
           action2="Explore as Visitor"
-          content1="Run fast structural simulations powered by a Graph Neural Network. Choose your role to get started."
+          content1="Welcome to our simulation platform - simple,private and powerful."
           heading1="Structural Response Simulation System"
          //image1Src="https://images.unsplash.com/photo-1675573206424-36f844f7627a"
            image1Src="/assets/1.png"
@@ -60,17 +60,17 @@ const Home = () => {
         />
       </section>
 
-      {/* STEPS (Orange Background) */}
+        {/* STEPS (Orange Background) */}
       <section className="steps-section fullwidth">
         <Steps2
           step1Title="Choose Your Role"
           step1Description="Select Researcher, Visitor, or Admin to access the relevant dashboard and features."
-          step2Title="Upload Files"
-          step2Description="Provide GNN inputs and LS-DYNA ground truth in .npz format."
-          step3Title="Customize Visualization"
-          step3Description="Switch between CPU/GPU, choose visualization mode, and scrub through frames interactively."
-          step4Title="Export Results"
-          step4Description="Save results as GIF, MP4, or CSV for reporting and further analysis."
+          step2Title="Data Preprocessing"
+          step2Description="Upload your LS-DYNA simulation folder and convert it into NPZ format using the built-in tool. Progress is shown beneath the button."
+          step3Title="FGN Inference"
+          step3Description="Configure inference parameters and run the simulation using the selected model. Track real-time progress in the log panel."
+          step4Title="View Results"
+          step4Description="Visualisation appears in top right panel\nUse mode selector to change between GIF, MP4, and comparison views"
         />
       </section>
 
@@ -114,10 +114,10 @@ const Home = () => {
         />
       </section>
 
-      {/* CONTACT / REPOSITORIES */}
+    {/* CONTACT / REPOSITORIES */}
       <section className="bg-brand--white fullwidth">
         <Contact10
-          content1="Repositories and docs for the Capstone project are available to contributors."
+          content1="Repositories and docs for the application are available to contributors."
           heading1="Project Repositories"
           location1="GNN / Model Serving"
           location2="Desktop App (Tauri + React)"
