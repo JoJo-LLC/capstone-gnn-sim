@@ -73,6 +73,8 @@
   align-items: center;
   flex-direction: row;
   justify-content: flex-end;
+  .navbar8-container1 .navbar8-navlink1 { color: #0f172a; }
+.navbar8-container1 .navbar8-navlink1 svg { stroke: #0f172a; }
 }
  
 .navbar8-container2 {
