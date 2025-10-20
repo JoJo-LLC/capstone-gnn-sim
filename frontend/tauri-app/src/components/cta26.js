@@ -1,5 +1,4 @@
 import React, { Fragment } from 'react'
-import { Link } from 'react-router-dom'
 
 import PropTypes from 'prop-types'
 
@@ -33,20 +32,18 @@ const CTA26 = (props) => {
                 </p>
               </div>
               <div className="cta26-actions">
-                <Link to="/researcher-page">
-                  <button
-                    type="button"
-                    className="thq-button-filled cta26-button"
-                  >
-                    <span>
-                      {props.action1 ?? (
-                        <Fragment>
-                          <span className="cta26-text6">Get Started</span>
-                        </Fragment>
-                      )}
-                    </span>
-                  </button>
-                </Link>
+                <button
+                  type="button"
+                  className="thq-button-filled cta26-button"
+                >
+                  <span>
+                    {props.action1 ?? (
+                      <Fragment>
+                        <span className="cta26-text6">Get Started</span>
+                      </Fragment>
+                    )}
+                  </span>
+                </button>
               </div>
             </div>
           </div>

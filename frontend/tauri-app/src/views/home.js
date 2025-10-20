@@ -40,9 +40,23 @@ const Home = () => {
       {/* HERO */}
       <section className="bg-brand--white fullwidth">
         <Hero17
-          content1="Welcome to our simulation platform — simple, private, and powerful."
+          action1="Explore as Researcher"
+          action2="Explore as Visitor"
+          content1="Run fast structural simulations powered by a Graph Neural Network. Choose your role to get started."
           heading1="Structural Response Simulation System"
-          image1Src="https://images.unsplash.com/photo-1675573206424-36f844f7627a"
+         //image1Src="https://images.unsplash.com/photo-1675573206424-36f844f7627a"
+           image1Src="/assets/1.png"
+           image2Src="/assets/2.png"
+           image3Src="/assets/3.png"
+           image4Src="/assets/4.png"
+           image5Src="/assets/5.png"
+           image6Src="/assets/6.png"
+           image7Src="/assets/7.png"
+           image8Src="/assets/8.png"
+           image9Src="/assets/9.png"
+           image10Src="/assets/10.png"
+           image11Src="/assets/11.png"
+           image12Src="/assets/12.png"
         />
       </section>
 
@@ -51,12 +65,12 @@ const Home = () => {
         <Steps2
           step1Title="Choose Your Role"
           step1Description="Select Researcher, Visitor, or Admin to access the relevant dashboard and features."
-          step2Title="Data Preprocessing"
-          step2Description="Upload your LS-DYNA simulation folder and convert it into NPZ format using the built-in tool. Progress is shown beneath the button."
-          step3Title="FGN Inference"
-          step3Description="Configure inference parameters and run the simulation using the selected model. Track real-time progress in the log panel."
-          step4Title="View Results"
-          step4Description="Visualisation appears in top right panel\nUse mode selector to change between GIF, MP4, and comparison views"
+          step2Title="Upload Files"
+          step2Description="Provide GNN inputs and LS-DYNA ground truth in .npz format."
+          step3Title="Customize Visualization"
+          step3Description="Switch between CPU/GPU, choose visualization mode, and scrub through frames interactively."
+          step4Title="Export Results"
+          step4Description="Save results as GIF, MP4, or CSV for reporting and further analysis."
         />
       </section>
 
@@ -69,18 +83,25 @@ const Home = () => {
           feature1Description="Load simulation inputs and optional LS-DYNA reference data."
           feature2Description="Run locally on CPU or accelerate on GPU when available."
           feature3Description="Download results in CSV, with animation export to GIF/MP4."
+           feature1ImgSrc="/assets/14.png"
+            feature2ImgSrc="/assets/15.png"
+            feature3ImgSrc="/assets/16.png"
+           
         />
       </section>
 
       {/* FEATURES 2 */}
       <section className="bg-brand--white fullwidth">
         <Features25
-          feature1Title="Rapid Iteration"
+          feature1Title="Fast GNN Predictions"
           feature2Title="Local-First Desktop App"
-          feature3Title="3D Visualization"
+          feature3Title="Multiple Visualization Modes"
           feature1Description="GNN-based predictions return in minutes, enabling quick design cycles."
           feature2Description="Built with Tauri + React; works offline on standard hardware."
           feature3Description="Interactive viewing with single, frame-by-frame, and side-by-side modes."
+          feature3ImgSrc="/assets/17.png"
+          feature2ImgSrc="/assets/18.png"
+          feature1ImgSrc="/assets/19.png"
         />
       </section>
 
@@ -88,7 +109,7 @@ const Home = () => {
       <section className="bg-brand--white fullwidth">
         <CTA26
           action1="Get Started"
-          content1="Let's take you to the dashboard to run your first simulation."
+          content1="Choose your role to explore example simulations or run your own."
           heading1="Ready to run a simulation?"
         />
       </section>
@@ -96,7 +117,7 @@ const Home = () => {
       {/* CONTACT / REPOSITORIES */}
       <section className="bg-brand--white fullwidth">
         <Contact10
-          content1="Repositories and docs for the application are available to contributors."
+          content1="Repositories and docs for the Capstone project are available to contributors."
           heading1="Project Repositories"
           location1="GNN / Model Serving"
           location2="Desktop App (Tauri + React)"
@@ -108,11 +129,14 @@ const Home = () => {
       {/* FOOTER */}
       <section className="bg-brand--white fullwidth">
         <Footer4
+          link1="About"
+          link2="Contact"
+          link3="FAQs"
+          link4="Support"
+          link5="Blog"
           termsLink="Terms of Service"
           cookiesLink="Cookies Policy"
           privacyLink="Privacy Policy"
-          hideExtraLinks={true}
-          hideLogo={true}
         />
       </section>
     </div>
