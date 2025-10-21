@@ -13,10 +13,12 @@ const Steps2 = (props) => {
               Discover the Power of Our Simulation Platform
             </h2>
             <p className="thq-body-large">
-              Our Structural Response Simulation System harnesses Graph Neural Network technology 
-              to deliver rapid, accurate predictions of structural behavior. Whether you’re a researcher, 
-              visitor, or admin, you can explore detailed 3D visualizations, compare results with LS-DYNA, 
-              and run simulations offline on standard hardware — all within minutes.
+            This application has been developed as an open-source, user-friendly simulation platform 
+designed to make structural response prediction accessible to both researchers and general users. 
+By building around the provided simulation fragment, we created a clean interface that allows users to 
+run, manage, and visualise simulations in multiple intuitive view modes (gif and frame by frame video). 
+The system is fully local and privacy-conscious, requiring no internet connection to run, 
+yet it is flexible enough for others to extend or plug in their own simulation logic or data pipelines. 
             </p>
             <div className="steps2-actions">
               <button className="thq-button-animated thq-button-filled steps2-button">
