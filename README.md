@@ -7,12 +7,11 @@ A cross-platform desktop simulation app built using **Tauri**, **React**, **Fast
 ## ✅ Requirements
 
 ### Software
+
 - Docker (for backend simulation environment)
-- Node.js + npm (for frontend UI)
-- Rust (required by Tauri)
-- Python 3.10+ (backend services)
 
 ### Hardware
+
 - 8 GB RAM minimum
 - 50 GB free storage recommended
 
@@ -21,24 +20,28 @@ A cross-platform desktop simulation app built using **Tauri**, **React**, **Fast
 ## 🚀 How to Use
 
 ### 1. Clone the repository
+
 ```bash
 git clone https://bitbucket.org/curtincomputingprojects/2025-19-ai-powered-structural-response-simulator.git
 cd 2025-19-ai-powered-structural-response-simulator/frontend/tauri-app
 ```
 
 ### 2. Install frontend dependencies
+
 ```bash
-npm install
+npm or cargo install
 ```
 
 ### 3. Start in development mode
+
 ```bash
-npm run tauri dev
+npm run cargo tauri dev
 ```
 
 ### 4. Build the final application (cross-platform)
+
 ```bash
-npm run tauri build
+npm or cargo run tauri build
 ```
 
 > ⚠️ Note: You must have Docker Desktop installed and running in the background.
@@ -57,17 +60,20 @@ npm run tauri build
 ## 📁 Important Files & Folders
 
 ### Frontend (Tauri + React)
+
 - `/frontend/tauri-app/src/components/` — UI component files
 - `/frontend/tauri-app/src/views/` — Home, Admin, Visitor, and Researcher pages
 - `/frontend/tauri-app/src-tauri/` — Tauri config and Rust bridge backend
 - `tauri.conf.json` — App configuration
 
 ### Backend (GNN Service)
+
 - `/backend/main.py` — Entry point for Docker container
 - `gns_inference_with_progress.py` — GNN prediction logic
 - `Dockerfile.cpu` and `Dockerfile.gpu` — Docker setup
 
 ### Simulation Data
+
 - Input folder: `~/Documents/StructuralResponseSimulator/data/`
 - Model folder: `~/Documents/StructuralResponseSimulator/models/`
 - Output folder: `~/Documents/StructuralResponseSimulator/data/output/`
@@ -78,31 +84,34 @@ npm run tauri build
 
 ### Core Technologies Used
 
-| Layer         | Tech Stack                                   |
-|---------------|-----------------------------------------------|
-| Frontend      | **React (Vite)** + Tailwind CSS               |
-| Desktop Shell | **Tauri v2** (Rust-based cross-platform UI)   |
-| Backend       | **FastAPI** + PyTorch + NumPy (GNN serving)   |
+| Layer            | Tech Stack                                  |
+| ---------------- | ------------------------------------------- |
+| Frontend         | **React (Vite)** + Tailwind CSS             |
+| Desktop Shell    | **Tauri v2** (Rust-based cross-platform UI) |
+| Backend          | **FastAPI** + PyTorch + NumPy (GNN serving) |
 | Containerization | Docker + Docker Compose (CPU/GPU profiles)  |
-| Data Format   | `.npz` for simulation input/output            |
+| Data Format      | `.npz` for simulation input/output          |
 
 ### 💡 Developer Setup & Customization
 
 This project is modular, open-source, and built to be extended. Here’s how you can work with and expand it:
 
 - **Frontend UI (React + Tauri):**
+
   - Found in `/frontend/tauri-app/src`
   - Split into `views/` for top-level pages and `components/` for reusable widgets
   - Uses state-based routing for different user modes (Researcher, Visitor, Admin)
   - Built with Tailwind classes for theming and responsiveness
 
 - **Tauri Backend (Rust):**
+
   - Found in `/frontend/tauri-app/src-tauri`
   - Configured via `tauri.conf.json`
   - Handles filesystem access, secure mode switching, and Docker integration
   - Compile using `cargo tauri build` or run with `npm run tauri dev`
 
 - **GNN Serving Backend (Python):**
+
   - Found in `/backend/`
   - Core script: `gns_inference_with_progress.py` (handles .npz inference and live progress reporting)
   - Containerized with `Dockerfile.cpu` and `Dockerfile.gpu`
