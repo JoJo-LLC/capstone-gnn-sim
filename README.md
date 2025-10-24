@@ -21,11 +21,6 @@ A cross-platform desktop simulation app built using **Tauri**, **React**, **Fast
 
 ### 1. Clone the repository
 
-```bash
-git clone https://bitbucket.org/curtincomputingprojects/2025-19-ai-powered-structural-response-simulator.git
-cd 2025-19-ai-powered-structural-response-simulator/frontend/tauri-app
-```
-
 ### 2. Install frontend dependencies
 
 ```bash
