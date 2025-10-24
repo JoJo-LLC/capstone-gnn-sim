@@ -112,7 +112,7 @@ const Home = () => {
           feature3ImgSrc={img20}
           feature1ImgAlt="Upload .npz"
           feature2ImgAlt="CPU/GPU"
-          feature3ImgAlt="Export results"
+          feature3ImgAlt="Export results."
         />
         
       </section>
