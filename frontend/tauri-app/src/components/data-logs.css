@@ -1,0 +1,31 @@
+.thq-card {
+  background-color: rgba(255, 255, 255, 0.07);
+  color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-left: 6px;
+  text-transform: capitalize;
+}
+
+.status-badge.completed {
+  background-color: #38a169;
+  color: white;
+}
+
+.status-badge.queued {
+  background-color: #ed8936;
+  color: white;
+}
+
+.status-badge.failed {
+  background-color: #e53e3e;
+  color: white;
+}

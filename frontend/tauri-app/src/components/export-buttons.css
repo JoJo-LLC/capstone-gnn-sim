@@ -1,0 +1,80 @@
+.export-buttons-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.export-buttons-group {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+/* Compact header version */
+.visualization-export .export-buttons-container {
+  flex-direction: row;
+  width: auto;
+}
+
+.visualization-export .export-buttons-group {
+  gap: 8px;
+  margin: 0;
+}
+
+.export-button {
+  min-width: 120px;
+  padding: 12px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #805ad5, #6b46c1);
+  color: white;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.3s ease;
+  box-shadow: 0 4px 12px rgba(128, 90, 213, 0.3);
+}
+
+/* Compact header version buttons */
+.visualization-export .export-button {
+  min-width: 80px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(128, 90, 213, 0.2);
+}
+
+.export-button:hover {
+  transform: scale(1.05);
+  background: linear-gradient(90deg, #9f7aea, #805ad5);
+}
+
+.export-button.downloaded {
+  background: linear-gradient(90deg, #4ade80, #22c55e) !important;
+  box-shadow: 0 4px 12px rgba(74, 222, 128, 0.4);
+  cursor: not-allowed;
+  animation: pulse-green 0.5s ease-in-out;
+}
+
+.visualization-export .export-button.downloaded {
+  box-shadow: 0 2px 6px rgba(74, 222, 128, 0.3);
+}
+
+.export-button:disabled {
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+@keyframes pulse-green {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}

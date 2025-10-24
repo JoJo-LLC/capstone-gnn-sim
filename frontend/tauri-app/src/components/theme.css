@@ -1,0 +1,33 @@
+:root {
+  --capstone-bg: #ffffff;     /* White */
+  --capstone-accent: #004080; /* Deep Blue */
+  --capstone-accent-2: #ff6600; /* Orange */
+  --capstone-fg: #0f172a;     /* Dark text */
+}
+
+/* Global body styling */
+body {
+  background: var(--capstone-bg);
+  color: var(--capstone-fg);
+  font-family: 'Noto Sans', sans-serif;
+  margin: 0;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: bold;
+  color: var(--capstone-accent);
+}
+
+/* Buttons using theme */
+button {
+  background-color: var(--capstone-accent);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: var(--capstone-accent-2);
+}

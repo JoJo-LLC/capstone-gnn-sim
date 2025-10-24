@@ -1,0 +1,34 @@
+
+
+version: "3.8"
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.gpu
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongodb
+    environment:
+      PYTHONPATH: /app:/app/gns-fragment:/app/src
+      DATA_DIR: ${DATA_DIR}
+      MODELS_DIR: ${MODELS_DIR}
+    volumes:
+      - ./backend:/app/src
+      - ${DATA_DIR}:/app/data
+      - ${MODELS_DIR}:/app/models
+    working_dir: /app/src
+
+  mongodb:
+    image: mongo:7.0
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+    volumes:
+      - mongodb_data:/data/db
+
+volumes:
+  mongodb_data:

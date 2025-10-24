@@ -1,99 +1,135 @@
-# Capstone GNN Simulation App - Developer Setup Guide
+# 🏗️ Structural Response Simulation System
 
-Repository: https://github.com/JoJo-LLC/capstone-gnn-sim
-
-This guide walks you through cloning the repository and setting up both the backend (FastAPI + Docker) and frontend (Tauri desktop app with vanilla JS). This setup works on both macOS and Windows.
-
-1. Prerequisites
+A cross-platform desktop simulation app built using **Tauri**, **React**, **FastAPI**, and **Docker** to enable fast, local-first structural response prediction powered by Graph Neural Networks (GNN).
 
 ---
 
-You must have the following installed:
+## ✅ Requirements
 
-General:
+### Software
 
-- Git
-- Node.js (v18 or higher recommended)
-- npm
-- Docker Desktop (ensure Docker is running)
+- Docker (for backend simulation environment)
 
-macOS-specific:
+### Hardware
 
-- Rust (install from https://rustup.rs)
-- Homebrew (for other dependencies)
-
-Windows-specific:
-
-- Rust (install from https://rustup.rs)
-- Windows Subsystem for Linux (optional, but can help for some builds)
-
-Tauri dependencies:
-
-- cargo
-- tauri-cli
-
-Install tauri-cli:
-cargo install tauri-cli --version '^2.0.0' --locked
-
-2. Clone the Repository
+- 8 GB RAM minimum
+- 50 GB free storage recommended
 
 ---
 
-git clone https://github.com/JoJo-LLC/capstone-gnn-sim.git
-cd capstone-gnn-sim
+## 🚀 How to Use
 
-3. Run the Backend (FastAPI + Docker)
+### 1. Clone the repository
 
----
+```bash
+git clone https://bitbucket.org/curtincomputingprojects/2025-19-ai-powered-structural-response-simulator.git
+cd 2025-19-ai-powered-structural-response-simulator/frontend/tauri-app
+```
 
-The backend is in /backend and uses Docker.
+### 2. Install frontend dependencies
 
-To start the backend:
-docker-compose up --build
+```bash
+npm or cargo install
+```
 
-This will:
+### 3. Start in development mode
 
-- Build the backend container
-- Start the FastAPI server at http://localhost:8000
+```bash
+npm run cargo tauri dev
+```
 
-Test the backend is running by visiting:
-http://localhost:8000/ – should return {"message":"FastAPI backend is running"}
+### 4. Build the final application (cross-platform)
 
-To stop it:
-Press Ctrl+C or use `docker-compose down`
+```bash
+npm or cargo run tauri build
+```
 
-4. Run the Frontend (Tauri Desktop App)
-
----
-
-The frontend is inside the /tauri-app directory.
-
-Steps to run:
-
-cd tauri-app
-cargo tauri dev
-
-This will launch the desktop application locally.
-
-5. File Structure Overview (Summary)
+> ⚠️ Note: You must have Docker Desktop installed and running in the background.
 
 ---
 
-/backend
-FastAPI backend, Dockerfile, requirements.txt
-/tauri-app
-Tauri frontend (vanilla JS)
-/frontend/public
-Mockup HTML, JS, and CSS used in the UI prototype
-/docker-compose.yml
-Combines and runs backend services in Docker
+## 🧪 Usage Flow (UI)
 
-6. Notes
+1. **Select Role:** Choose from Researcher, Visitor, or Admin.
+2. **Upload Simulation Files:** Provide `.npz` files for GNN inference and LS-DYNA comparison.
+3. **Customize Visualisation:** Choose between CPU/GPU mode, GIF/MP4/Frame navigation.
+4. **Export Results:** Download visualisation or data as `.csv`, `.gif`, or `.mp4`.
 
 ---
 
-- The project is containerized for consistency. If you use Docker, you do not need to manually create virtual environments.
-- Tauri and cargo must be installed globally on your machine to run the frontend.
-- Use `cargo tauri dev` whenever you make frontend changes to see the results.
+## 📁 Important Files & Folders
 
-Optional: If you're having Docker issues, make sure your Docker Desktop is running and has sufficient permissions (especially on macOS).
+### Frontend (Tauri + React)
+
+- `/frontend/tauri-app/src/components/` — UI component files
+- `/frontend/tauri-app/src/views/` — Home, Admin, Visitor, and Researcher pages
+- `/frontend/tauri-app/src-tauri/` — Tauri config and Rust bridge backend
+- `tauri.conf.json` — App configuration
+
+### Backend (GNN Service)
+
+- `/backend/main.py` — Entry point for Docker container
+- `gns_inference_with_progress.py` — GNN prediction logic
+- `Dockerfile.cpu` and `Dockerfile.gpu` — Docker setup
+
+### Simulation Data
+
+- Input folder: `~/Documents/StructuralResponseSimulator/data/`
+- Model folder: `~/Documents/StructuralResponseSimulator/models/`
+- Output folder: `~/Documents/StructuralResponseSimulator/data/output/`
+
+---
+
+## 🛠️ Tech Stack & Developer Guide
+
+### Core Technologies Used
+
+| Layer            | Tech Stack                                  |
+| ---------------- | ------------------------------------------- |
+| Frontend         | **React (Vite)** + Tailwind CSS             |
+| Desktop Shell    | **Tauri v2** (Rust-based cross-platform UI) |
+| Backend          | **FastAPI** + PyTorch + NumPy (GNN serving) |
+| Containerization | Docker + Docker Compose (CPU/GPU profiles)  |
+| Data Format      | `.npz` for simulation input/output          |
+
+### 💡 Developer Setup & Customization
+
+This project is modular, open-source, and built to be extended. Here’s how you can work with and expand it:
+
+- **Frontend UI (React + Tauri):**
+
+  - Found in `/frontend/tauri-app/src`
+  - Split into `views/` for top-level pages and `components/` for reusable widgets
+  - Uses state-based routing for different user modes (Researcher, Visitor, Admin)
+  - Built with Tailwind classes for theming and responsiveness
+
+- **Tauri Backend (Rust):**
+
+  - Found in `/frontend/tauri-app/src-tauri`
+  - Configured via `tauri.conf.json`
+  - Handles filesystem access, secure mode switching, and Docker integration
+  - Compile using `cargo tauri build` or run with `npm run tauri dev`
+
+- **GNN Serving Backend (Python):**
+
+  - Found in `/backend/`
+  - Core script: `gns_inference_with_progress.py` (handles .npz inference and live progress reporting)
+  - Containerized with `Dockerfile.cpu` and `Dockerfile.gpu`
+  - Managed by `docker-compose.cpu.yml` or `docker-compose.gpu.yml`
+
+- **Simulation I/O:**
+  - Input data folders are dropped into `~/Documents/StructuralResponseSimulator/data`
+  - Models are placed in `~/Documents/StructuralResponseSimulator/models`
+  - Output is saved to `~/Documents/StructuralResponseSimulator/data/output`
+
+### 🔧 Extendability
+
+- 🧩 Modular project layout for adding new features easily
+- 🌐 Local-first privacy model
+- 🔌 Easily swap in new GNN models, data pipelines, or UIs
+
+---
+
+## 📎 Related Project Repositories
+
+- 🔗 GNN Fragment Model: [github.com/qilinli/gns-fragment](https://github.com/qilinli/gns-fragment)

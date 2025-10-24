@@ -1,0 +1,266 @@
+.fgn-inference-container {
+  font-family: monospace;
+  background-color: transparent !important;
+  color: #ffffff;
+  padding: 0;
+  margin: 0;
+  max-width: 100%;
+  border: none !important;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.fgn-inference-title {
+  display: none; /* Hide title since it's now in section header */
+}
+
+.fgn-inference-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  padding-right: 4px; /* Space for scrollbar */
+}
+
+.fgn-control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.fgn-control-group label {
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: bold;
+  text-align: left;
+}
+
+.fgn-control-group input {
+  padding: 6px 8px;
+  border: 1px solid #444;
+  border-radius: 4px;
+  background-color: #2d2d2d;
+  color: #ffffff;
+  font-family: monospace;
+  font-size: 0.85rem;
+  box-sizing: border-box;
+}
+
+.fgn-control-group input[type="number"] {
+  width: 50%;
+  max-width: 50%;
+}
+
+/* Specific inputs that should stay 50% width */
+input#nsteps,
+input#detonationXY {
+  width: 50% !important;
+  max-width: 50% !important;
+}
+
+.fgn-control-group input:disabled {
+  background-color: #666;
+  cursor: not-allowed;
+}
+
+.fgn-folder-selector {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.fgn-folder-selector input {
+  flex: 1;
+  min-width: 0;
+}
+
+.fgn-folder-btn {
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background-color 0.3s ease;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.fgn-folder-btn:hover:not(:disabled) {
+  background-color: #1976D2;
+}
+
+.fgn-folder-btn:disabled {
+  background-color: #444;
+  cursor: not-allowed;
+}
+
+.fgn-browse-note {
+  font-size: 12px;
+  color: #ffffff;
+  margin-top: 5px;
+  font-style: italic;
+  text-align: left;
+}
+
+.fgn-control-buttons {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0; /* Prevent buttons from shrinking */
+  margin-top: 12px;
+}
+
+.fgn-start-btn, .fgn-stop-btn, .fgn-clear-btn {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background-color 0.3s ease;
+  flex: 1;
+  min-width: 0;
+  font-weight: 500;
+}
+
+.fgn-stop-btn {
+  background-color: #E91E63;
+}
+
+.fgn-clear-btn {
+  background-color: #FF9800;
+}
+
+.fgn-start-btn:hover:not(:disabled) {
+  background-color: #45a049;
+}
+
+.fgn-stop-btn:hover:not(:disabled) {
+  background-color: #C2185B;
+}
+
+.fgn-clear-btn:hover:not(:disabled) {
+  background-color: #f57c00;
+}
+
+.fgn-start-btn:disabled, .fgn-stop-btn:disabled, .fgn-clear-btn:disabled {
+  background-color: #666;
+  cursor: not-allowed;
+}
+
+.fgn-status {
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 5px;
+  font-weight: bold;
+}
+
+.fgn-status-running {
+  background-color: #2196F3;
+  color: white;
+}
+
+.fgn-status-complete {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.fgn-status-error {
+  background-color: #F44336;
+  color: white;
+}
+
+.fgn-status-stopped {
+  background-color: #FF9800;
+  color: white;
+}
+
+.fgn-progress-log {
+  background-color: #0a0a0a;
+  border: 1px solid #444;
+  padding: 15px;
+  min-height: 300px;
+  max-height: 500px;
+  overflow-y: auto;
+  border-radius: 5px;
+  font-family: monospace;
+}
+
+.fgn-log-line {
+  margin: 5px 0;
+  word-wrap: break-word;
+  line-height: 1.4;
+  text-align: left;
+}
+
+.fgn-log-line.progress {
+  color: #4CAF50;
+}
+
+.fgn-log-line.debug {
+  color: #888;
+}
+
+.fgn-log-line.case {
+  color: #2196F3;
+}
+
+.fgn-log-line.complete {
+  color: #FF9800;
+  font-weight: bold;
+}
+
+.fgn-log-line.error {
+  color: #F44336;
+  font-weight: bold;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .fgn-inference-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .fgn-control-buttons {
+    justify-content: center;
+  }
+
+  .fgn-progress-log {
+    max-height: 300px;
+  }
+}
+
+/* Dark theme compatibility with existing styles */
+.researcher-page .fgn-inference-container {
+  background-color: rgba(30, 30, 30, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid #444;
+}
+
+/* Scrollbar styling for the log container */
+.fgn-progress-log::-webkit-scrollbar {
+  width: 8px;
+}
+
+.fgn-progress-log::-webkit-scrollbar-track {
+  background: #1e1e1e;
+  border-radius: 4px;
+}
+
+.fgn-progress-log::-webkit-scrollbar-thumb {
+  background: #666;
+  border-radius: 4px;
+}
+
+.fgn-progress-log::-webkit-scrollbar-thumb:hover {
+  background: #888;
+}

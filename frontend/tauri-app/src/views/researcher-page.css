@@ -1,0 +1,140 @@
+.researcher-page {
+  width: 100%;
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  background: #1a1a1a;
+}
+
+.researcher-main-container {
+  flex: 1;
+  width: 100%;
+  height: calc(100vh - 70px); /* Account for navbar height */
+  max-height: calc(100vh - 70px); /* Prevent container expansion */
+  display: grid;
+  grid-template-columns: 20% 1fr; /* Narrower sidebar: 20% of width */
+  grid-template-rows: 65% 35%; /* Shorter visualization (65%), taller logs (35%) */
+  grid-template-areas:
+    "sidebar visualization"
+    "sidebar logs";
+  gap: 1px;
+  background: #2a2a2a;
+  overflow: hidden; /* Prevent scrolling */
+  animation: fadeIn 0.8s ease-in-out;
+}
+
+/* Responsive breakpoints for different screen sizes */
+@media (max-width: 1400px) {
+  .researcher-main-container {
+    grid-template-columns: 25% 1fr; /* Wider sidebar on smaller screens */
+  }
+}
+
+@media (max-width: 1200px) {
+  .researcher-main-container {
+    grid-template-columns: 28% 1fr; /* Even wider sidebar on smaller screens */
+  }
+}
+
+@media (max-width: 1000px) {
+  .researcher-main-container {
+    grid-template-columns: 30% 1fr; /* Maximum sidebar width */
+    grid-template-rows: 40% 60%; /* More space for logs on smaller screens */
+  }
+}
+ 
+.researcher-page-text10 {
+  display: inline-block;
+}
+ 
+.researcher-page-text11 {
+  display: inline-block;
+}
+ 
+.researcher-page-text12 {
+  display: inline-block;
+}
+ 
+.researcher-page-text13 {
+  display: inline-block;
+}
+ 
+.researcher-page-text14 {
+  display: inline-block;
+}
+ 
+.researcher-page-text15 {
+  display: inline-block;
+}
+ 
+.researcher-page-text16 {
+  display: inline-block;
+}
+ 
+.researcher-page-text17 {
+  display: inline-block;
+}
+ 
+.researcher-page-text18 {
+  display: inline-block;
+}
+ 
+.researcher-page-text19 {
+  display: inline-block;
+}
+ 
+.researcher-page-text20 {
+  display: inline-block;
+}
+ 
+.researcher-page-text21 {
+  display: inline-block;
+}
+ 
+.researcher-page-text22 {
+  display: inline-block;
+}
+ 
+.researcher-page-text23 {
+  display: inline-block;
+}
+ 
+.researcher-page-text24 {
+  display: inline-block;
+}
+ 
+.researcher-page-text25 {
+  display: inline-block;
+}
+ 
+.researcher-page-text26 {
+  display: inline-block;
+}
+ 
+.researcher-page-text27 {
+  display: inline-block;
+}
+ 
+.researcher-page-text28 {
+  display: inline-block;
+}
+ 
+.researcher-page-text29 {
+  display: inline-block;
+}
+ 
+.researcher-page-text30 {
+  display: inline-block;
+}
+ 
+.researcher-page-text31 {
+  display: inline-block;
+}
+ 
+.researcher-page-text32 {
+  display: inline-block;
+}
+ 
+.researcher-page-text33 {
+  display: inline-block;
+}
