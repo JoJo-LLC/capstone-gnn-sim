@@ -12,9 +12,9 @@ const Navbar8 = (props) => {
   return (
     <header className="navbar8-container1">
       <header data-thq="thq-navbar" className="navbar8-navbar-interactive">
-        <Link to="/" className="navbar8-navlink1" style={{ display: 'flex', alignItems: 'center' }}>
-          <Home size={24} />
-        </Link>
+       <Link to="/" className="navbar8-navlink1" style={{ display: 'flex', alignItems: 'center' }}>
+  <Home size={24} color="#0f172a" /> {/* slate-900-ish */}
+</Link>
         <div data-thq="thq-navbar-nav" className="navbar8-desktop-menu">
           <nav className="navbar8-links1">
             <Link

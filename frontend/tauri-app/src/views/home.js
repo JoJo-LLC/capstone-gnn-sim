@@ -11,6 +11,14 @@ import CTA26 from '../components/cta26';
 import Contact10 from '../components/contact10';
 import Footer4 from '../components/footer4';
 
+// <-- IMPORT LOCAL IMAGES (example)
+import img14 from '../assets/14.png';
+import img15 from '../assets/15.png';
+import img16 from '../assets/16.png';
+import img18 from '../assets/18.png';
+import img19 from '../assets/19.png';
+import img20 from '../assets/17.png';
+
 import './home.css';   // Page-specific styling
 
 const Home = () => {
@@ -42,7 +50,19 @@ const Home = () => {
         <Hero17
           content1="Welcome to our simulation platform — simple, private, and powerful."
           heading1="Structural Response Simulation System"
-          image1Src="https://images.unsplash.com/photo-1675573206424-36f844f7627a"
+          //image1Src="https://images.unsplash.com/photo-1675573206424-36f844f7627a"
+           image1Src="/assets/1.png"
+           image2Src="/assets/2.png"
+           image3Src="/assets/3.png"
+           image4Src="/assets/4.png"
+           image5Src="/assets/5.png"
+           image6Src="/assets/6.png"
+           image7Src="/assets/7.png"
+           image8Src="/assets/8.png"
+           image9Src="/assets/9.png"
+           image10Src="/assets/10.png"
+           image11Src="/assets/11.png"
+           image12Src="/assets/12.png"
         />
       </section>
 
@@ -60,15 +80,21 @@ const Home = () => {
         />
       </section>
 
-      {/* FEATURES 1 */}
+      {/* FEATURES 1 - PASS LOCAL IMAGES TO FEATURES24 */}
       <section className="bg-brand--white fullwidth">
         <Features24
           feature1Title="Upload .npz Inputs"
           feature2Title="CPU/GPU Toggle"
           feature3Title="Export Results"
-          feature1Description="Load simulation inputs and optional LS-DYNA reference data."
+          feature1Description="Load simulation inputs and optional reference data."
           feature2Description="Run locally on CPU or accelerate on GPU when available."
           feature3Description="Download results in CSV, with animation export to GIF/MP4."
+          feature1ImgSrc={img14}
+          feature2ImgSrc={img15}
+          feature3ImgSrc={img16}
+          feature1ImgAlt="Upload .npz"
+          feature2ImgAlt="CPU/GPU"
+          feature3ImgAlt="Export results"
         />
       </section>
 
@@ -81,7 +107,14 @@ const Home = () => {
           feature1Description="GNN-based predictions return in minutes, enabling quick design cycles."
           feature2Description="Built with Tauri + React; works offline on standard hardware."
           feature3Description="Interactive viewing with single, frame-by-frame, and side-by-side modes."
+          feature1ImgSrc={img18}
+          feature2ImgSrc={img19}
+          feature3ImgSrc={img20}
+          feature1ImgAlt="Upload .npz"
+          feature2ImgAlt="CPU/GPU"
+          feature3ImgAlt="Export results."
         />
+        
       </section>
 
       {/* CTA */}
